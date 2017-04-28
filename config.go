@@ -33,6 +33,7 @@ type VMParams struct {
 type Config struct {
 	common.PackerConfig `mapstructure:",squash"`
 	CommConfig communicator.Config `mapstructure:",squash"`
+	vmwcommon.DriverConfig   `mapstructure:",squash"`
 	vmwcommon.SSHConfig      `mapstructure:",squash"`
 
 	Url            string `mapstructure:"url"`
@@ -77,6 +78,7 @@ func NewConfig(raws ...interface{}) (*Config, []string, error) {
 
 	// Prepare config(s)
 	errs = packer.MultiErrorAppend(errs, c.CommConfig.Prepare(&c.ctx)...)
+	errs = packer.MultiErrorAppend(errs, c.DriverConfig.Prepare(&c.ctx)...)
 	errs = packer.MultiErrorAppend(errs, c.SSHConfig.Prepare(&c.ctx)...)
 
 	// Check the required params

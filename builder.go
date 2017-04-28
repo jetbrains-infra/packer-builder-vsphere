@@ -34,6 +34,16 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	// Build the steps.
 	steps := []multistep.Step{
 		&StepCloneVM{},
+		//&communicator.StepConnect{
+		//	Config:    &b.config.SSHConfig.Comm,
+		//	Host:      driver.CommHost,
+		//	SSHConfig: vmwcommon.SSHConfigFunc(&b.config.SSHConfig),
+		//},
+		//&common.StepProvision{},
+		//&vmwcommon.StepShutdown{
+		//	Command: b.config.ShutdownCommand,
+		//	Timeout: b.config.ShutdownTimeout,
+		//},
 	}
 
 	// Run!

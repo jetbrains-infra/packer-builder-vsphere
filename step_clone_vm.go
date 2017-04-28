@@ -10,25 +10,31 @@ import (
 	"github.com/mitchellh/multistep"
 	"github.com/vmware/govmomi/vim25/types"
 	"github.com/vmware/govmomi/object"
+	"github.com/hashicorp/packer/packer"
 )
 
 type StepCloneVM struct{}
 
 func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 	config := state.Get("config").(*Config)
+	ui := state.Get("ui").(packer.Ui)
+
 	vm_params := config.vm_params
 	vm_custom := config.vm_custom
-	err := CloneVM(vm_params, vm_custom)
+	ui.Say("start cloning...")
+	err := CloneVM(vm_params, vm_custom, state)
 	if err != nil {
 		state.Put("error", err)
 		return multistep.ActionHalt
+	} else {
+		ui.Say("finished cloning.")
 	}
 	return multistep.ActionContinue
 }
 
 func (s *StepCloneVM) Cleanup(multistep.StateBag) {}
 
-func CloneVM(vm_params VMParams, vm_custom VMCustomParams) error {
+func CloneVM(vm_params VMParams, vm_custom VMCustomParams, state multistep.StateBag) error {
 	// Prepare entities: client (authentification), finder, folder, virtual machine
 	client, ctx, err := createClient(vm_params.Url, vm_params.Username, vm_params.Password)
 	if err != nil {
@@ -70,13 +76,47 @@ func CloneVM(vm_params VMParams, vm_custom VMCustomParams) error {
 	if err != nil {
 		return err
 	}
-	_, err = task.WaitForResult(ctx, nil)
+
+	info, err := task.WaitForResult(ctx, nil)
 	if err != nil {
 		return err
 	}
 
+	vm := object.NewVirtualMachine(client.Client, info.Result.(types.ManagedObjectReference))
+	task, err = vm.PowerOn(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = task.WaitForResult(ctx, nil)
+	if err != nil {
+		return err
+	}
+	err = vm.MountToolsInstaller(ctx)
+	if err != nil {
+		return err
+	}
+	//for {
+	//	isRunning, err := vm.IsToolsRunning(ctx)
+	//	if err != nil {
+	//		return err
+	//	} else if isRunning {
+	//		state.Get("ui").(packer.Ui).Say("VMWare Tools is running")
+	//	} else {
+	//		break
+	//	}
+	//}
+
+	result, err := vm.WaitForIP(ctx)
+	if err != nil {
+		return err
+	} else {
+		state.Get("ui").(packer.Ui).Say(result)
+	}
+
 	return nil
 }
+
+// TODO: make a separate step
 func createClient(URL, username, password string) (*govmomi.Client, context.Context, error) {
 	// create context
 	ctx := context.TODO() // an empty, default context (for those, who is unsure)
@@ -98,6 +138,7 @@ func createClient(URL, username, password string) (*govmomi.Client, context.Cont
 	return client, ctx, nil
 }
 
+// TODO: make a separate step
 func createFinder(ctx context.Context, client *govmomi.Client, dc_name string) (*find.Finder, context.Context, error) {
 	// Create a finder to search for a vm with the specified name
 	finder := find.NewFinder(client.Client, false)
@@ -124,6 +165,7 @@ func createFinder(ctx context.Context, client *govmomi.Client, dc_name string) (
 	return finder, ctx, nil
 }
 
+// TODO: make a separate step
 func findVM_by_name(ctx context.Context, finder *find.Finder, vm_name string) (*object.VirtualMachine, context.Context, error) {
 	vm_o, err := finder.VirtualMachine(ctx, vm_name)
 	if err != nil {
