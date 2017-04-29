@@ -7,19 +7,41 @@ import (
 	"github.com/vmware/govmomi/vim25/types"
 	"github.com/vmware/govmomi/object"
 	"github.com/hashicorp/packer/packer"
+	"fmt"
 )
 
-type StepCloneVM struct{}
+type CloningEnv struct {
+	client *govmomi.Client
+	folder *object.Folder
+	vm_src *object.VirtualMachine
+	ctx    context.Context
+}
+
+func NewCloningEnv(state multistep.StateBag) *CloningEnv {
+	env := new(CloningEnv)
+	env.client = state.Get("client").(*govmomi.Client)
+	env.folder = state.Get("folder").(*object.Folder)
+	env.vm_src = state.Get("vm_src").(*object.VirtualMachine)
+	env.ctx = state.Get("ctx").(context.Context)
+	return env
+}
+
+type StepCloneVM struct{
+	vm_params VMParams
+	vm_custom VMCustomParams
+}
 
 func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	ui.Say("start cloning...")
 
-	err := CloneVM(state)
+	env := NewCloningEnv(state)
+	result, err := CloneVM(s.vm_params, s.vm_custom, env)
 	if err != nil {
 		state.Put("error", err)
 		return multistep.ActionHalt
 	} else {
+		ui.Say(fmt.Sprintf("new VM is on %v", result))
 		ui.Say("finished cloning.")
 	}
 
@@ -28,16 +50,9 @@ func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 
 func (s *StepCloneVM) Cleanup(multistep.StateBag) {}
 
-func CloneVM(state multistep.StateBag) error {
-	config := state.Get("config").(*Config)
-	vm_params := config.vm_params
-	vm_custom := config.vm_custom
-
-	// Prepare entities: client (authentification), finder, folder, virtual machine
-	client := state.Get("client").(*govmomi.Client)
-	folder := state.Get("folder").(*object.Folder)
-	vm_src := state.Get("vm_src").(*object.VirtualMachine)
-	ctx := state.Get("ctx").(context.Context)
+func CloneVM(vm_params VMParams, vm_custom VMCustomParams, env *CloningEnv) (result string, err error) {
+	result = ""
+	err = nil
 
 	// Creating spec's for cloning
 	var relocateSpec types.VirtualMachineRelocateSpec
@@ -58,36 +73,34 @@ func CloneVM(state multistep.StateBag) error {
 	}
 
 	// Cloning itself
-	task, err := vm_src.Clone(ctx, folder, vm_params.Vm_target_name, cloneSpec)
+	task, err := env.vm_src.Clone(env.ctx, env.folder, vm_params.Vm_target_name, cloneSpec)
 	if err != nil {
-		return err
+		return
 	}
 
-	info, err := task.WaitForResult(ctx, nil)
+	info, err := task.WaitForResult(env.ctx, nil)
 	if err != nil {
-		return err
+		return
 	}
 
-	vm := object.NewVirtualMachine(client.Client, info.Result.(types.ManagedObjectReference))
-	task, err = vm.PowerOn(ctx)
+	vm := object.NewVirtualMachine(env.client.Client, info.Result.(types.ManagedObjectReference))
+	task, err = vm.PowerOn(env.ctx)
 	if err != nil {
-		return err
+		return
 	}
-	_, err = task.WaitForResult(ctx, nil)
+	_, err = task.WaitForResult(env.ctx, nil)
 	if err != nil {
-		return err
+		return
 	}
-	err = vm.MountToolsInstaller(ctx)
+	err = vm.MountToolsInstaller(env.ctx)
 	if err != nil {
-		return err
-	}
-
-	result, err := vm.WaitForIP(ctx)
-	if err != nil {
-		return err
-	} else {
-		state.Get("ui").(packer.Ui).Say(result)
+		return
 	}
 
-	return nil
+	result, err = vm.WaitForIP(env.ctx)
+	if err != nil {
+		return
+	}
+
+	return result, nil
 }

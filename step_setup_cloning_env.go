@@ -12,32 +12,31 @@ import (
 	"github.com/vmware/govmomi/object"
 )
 
-type StepSetupCloningEnv struct{}
+type StepSetupCloningEnv struct{
+	vm_params VMParams
+}
 
 func (s *StepSetupCloningEnv) Run(state multistep.StateBag) multistep.StepAction {
-	config := state.Get("config").(*Config)
 	ui := state.Get("ui").(packer.Ui)
-	vm_params := config.vm_params
-
 	ui.Say("setup cloning environment...")
 
 	// Prepare entities: client (authentification), finder, folder, virtual machine
-	client, ctx, err := createClient(vm_params.Url, vm_params.Username, vm_params.Password)
+	client, ctx, err := createClient(s.vm_params.Url, s.vm_params.Username, s.vm_params.Password)
 	if err != nil {
 		state.Put("error", err)
 		return multistep.ActionHalt
 	}
-	finder, ctx, err := createFinder(ctx, client, vm_params.Dc_name)
+	finder, ctx, err := createFinder(ctx, client, s.vm_params.Dc_name)
 	if err != nil {
 		state.Put("error", err)
 		return multistep.ActionHalt
 	}
-	folder, err := finder.FolderOrDefault(ctx, vm_params.Folder_name)
+	folder, err := finder.FolderOrDefault(ctx, s.vm_params.Folder_name)
 	if err != nil {
 		state.Put("error", err)
 		return multistep.ActionHalt
 	}
-	vm_src, ctx, err := findVM_by_name(ctx, finder, vm_params.Vm_source_name)
+	vm_src, ctx, err := findVM_by_name(ctx, finder, s.vm_params.Vm_source_name)
 	if err != nil {
 		state.Put("error", err)
 		return multistep.ActionHalt

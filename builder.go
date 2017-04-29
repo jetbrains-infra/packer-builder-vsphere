@@ -27,21 +27,25 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packer.Artifact, error) {
 	// Set up the state.
 	state := new(multistep.BasicStateBag)
-	state.Put("config", b.config)
 	state.Put("hook", hook)
 	state.Put("ui", ui)
 
 	// Build the steps.
 	steps := []multistep.Step{
-		&StepSetupCloningEnv{},
-		&StepCloneVM{},
+		&StepSetupCloningEnv{
+			vm_params: b.config.vm_params,
+		},
+		&StepCloneVM{
+			vm_params: b.config.vm_params,
+			vm_custom: b.config.vm_custom,
+		},
 		//&communicator.StepConnect{
 		//	Config:    &b.config.SSHConfig.Comm,
 		//	Host:      driver.CommHost,
 		//	SSHConfig: vmwcommon.SSHConfigFunc(&b.config.SSHConfig),
 		//},
 		//&common.StepProvision{},
-		//&vmwcommon.StepShutdown{
+		//&StepShutdown{
 		//	Command: b.config.ShutdownCommand,
 		//	Timeout: b.config.ShutdownTimeout,
 		//},
