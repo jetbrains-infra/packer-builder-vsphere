@@ -7,7 +7,6 @@ import (
 	"github.com/vmware/govmomi/vim25/types"
 	"github.com/vmware/govmomi/object"
 	"github.com/hashicorp/packer/packer"
-	"fmt"
 )
 
 type CloningEnv struct {
@@ -36,22 +35,20 @@ func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 	ui.Say("start cloning...")
 
 	env := NewCloningEnv(state)
-	result, err := CloneVM(s.vm_params, s.vm_custom, env)
+	vm, err := CloneVM(s.vm_params, s.vm_custom, env)
 	if err != nil {
 		state.Put("error", err)
 		return multistep.ActionHalt
-	} else {
-		ui.Say(fmt.Sprintf("new VM is on %v", result))
-		ui.Say("finished cloning.")
 	}
 
+	state.Put("vm", vm)
 	return multistep.ActionContinue
 }
 
 func (s *StepCloneVM) Cleanup(multistep.StateBag) {}
 
-func CloneVM(vm_params VMParams, vm_custom VMCustomParams, env *CloningEnv) (result string, err error) {
-	result = ""
+func CloneVM(vm_params VMParams, vm_custom VMCustomParams, env *CloningEnv) (vm *object.VirtualMachine, err error) {
+	vm = nil
 	err = nil
 
 	// Creating spec's for cloning
@@ -83,24 +80,6 @@ func CloneVM(vm_params VMParams, vm_custom VMCustomParams, env *CloningEnv) (res
 		return
 	}
 
-	vm := object.NewVirtualMachine(env.client.Client, info.Result.(types.ManagedObjectReference))
-	task, err = vm.PowerOn(env.ctx)
-	if err != nil {
-		return
-	}
-	_, err = task.WaitForResult(env.ctx, nil)
-	if err != nil {
-		return
-	}
-	err = vm.MountToolsInstaller(env.ctx)
-	if err != nil {
-		return
-	}
-
-	result, err = vm.WaitForIP(env.ctx)
-	if err != nil {
-		return
-	}
-
-	return result, nil
+	vm = object.NewVirtualMachine(env.client.Client, info.Result.(types.ManagedObjectReference))
+	return vm, nil
 }

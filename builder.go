@@ -39,16 +39,14 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			vm_params: b.config.vm_params,
 			vm_custom: b.config.vm_custom,
 		},
+		&StepRun{},
 		//&communicator.StepConnect{
 		//	Config:    &b.config.SSHConfig.Comm,
 		//	Host:      driver.CommHost,
 		//	SSHConfig: vmwcommon.SSHConfigFunc(&b.config.SSHConfig),
 		//},
 		//&common.StepProvision{},
-		//&StepShutdown{
-		//	Command: b.config.ShutdownCommand,
-		//	Timeout: b.config.ShutdownTimeout,
-		//},
+		&StepShutdown{},
 	}
 
 	// Run!
