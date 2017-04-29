@@ -7,6 +7,9 @@ import (
 	"github.com/hashicorp/packer/common"
 	"github.com/hashicorp/packer/packer"
 	"github.com/mitchellh/multistep"
+	"github.com/hashicorp/packer/helper/communicator"
+	gossh "golang.org/x/crypto/ssh"
+	"github.com/hashicorp/packer/communicator/ssh"
 )
 
 type Builder struct {
@@ -40,12 +43,24 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			vm_custom: b.config.vm_custom,
 		},
 		&StepRun{},
-		//&communicator.StepConnect{
-		//	Config:    &b.config.SSHConfig.Comm,
-		//	Host:      driver.CommHost,
-		//	SSHConfig: vmwcommon.SSHConfigFunc(&b.config.SSHConfig),
-		//},
-		//&common.StepProvision{},
+		&communicator.StepConnect{
+			Config:    &b.config.Config,
+			Host:      func(state multistep.StateBag) (string, error) {
+				return state.Get("ip").(string), nil
+			},
+			SSHConfig: func(multistep.StateBag) (*gossh.ClientConfig, error) {
+				return &gossh.ClientConfig{
+					User: b.config.Ssh_username,
+					Auth: []gossh.AuthMethod{
+						gossh.Password(b.config.Ssh_password),
+						gossh.KeyboardInteractive(
+							ssh.PasswordKeyboardInteractive(b.config.Ssh_password)),
+					},
+					HostKeyCallback: gossh.InsecureIgnoreHostKey(),
+				}, nil
+			},
+		},
+		&common.StepProvision{},
 		&StepShutdown{},
 	}
 
