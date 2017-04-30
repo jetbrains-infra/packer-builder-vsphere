@@ -9,7 +9,6 @@ import (
 	"log"
 	"time"
 	"bytes"
-	"github.com/vmware/govmomi/vim25/types"
 )
 
 type StepShutdown struct{
@@ -42,8 +41,6 @@ func (s *StepShutdown) Run(state multistep.StateBag) multistep.StepAction {
 			return multistep.ActionHalt
 		}
 
-		var power_state types.VirtualMachinePowerState
-		var err error
 		// TODO: add timeout
 		for !cmd.Exited {
 			ui.Say("Waiting for remote cmd to finish...")
@@ -51,19 +48,18 @@ func (s *StepShutdown) Run(state multistep.StateBag) multistep.StepAction {
 		}
 		if cmd.ExitStatus != 0 {
 			err := fmt.Errorf("Cmd exit status %v, not 0", cmd.ExitStatus)
-			state.Put("error", err)
+			//state.Put("error", err)
 			ui.Error(err.Error())
-			return multistep.ActionHalt
+			//return multistep.ActionHalt
 		}
-		for power_state, err = vm.PowerState(ctx); err == nil && power_state != types.VirtualMachinePowerStatePoweredOff; {
-			ui.Say("Waiting for VM to finally shut down...")
-			time.Sleep(150 * time.Millisecond)
-		}
-		if err != nil {
-			state.Put("error", err)
-			ui.Error(err.Error())
-			return multistep.ActionHalt
-		}
+		//for power_state, err := vm.PowerState(ctx); err == nil && power_state != types.VirtualMachinePowerStatePoweredOff; {
+		//	ui.Say("Waiting for VM to finally shut down...")
+		//	time.Sleep(150 * time.Millisecond)
+		//} else if err != nil {
+		//	state.Put("error", err)
+		//	ui.Error(err.Error())
+		//	return multistep.ActionHalt
+		//}
 
 	} else {
 		ui.Say("Forcibly halting virtual machine...")
@@ -80,8 +76,9 @@ func (s *StepShutdown) Run(state multistep.StateBag) multistep.StepAction {
 	}
 
 	ui.Say("VM stopped")
+	state.Put(BuildSuccessFlag, true)
 	return multistep.ActionContinue
 }
 
-func (s *StepShutdown) Cleanup(multistep.StateBag) {}
+func (s *StepShutdown) Cleanup(state multistep.StateBag) {}
 
