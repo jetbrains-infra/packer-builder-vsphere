@@ -56,12 +56,15 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 						gossh.KeyboardInteractive(
 							ssh.PasswordKeyboardInteractive(b.config.Ssh_password)),
 					},
+					// TODO: add a proper verification
 					HostKeyCallback: gossh.InsecureIgnoreHostKey(),
 				}, nil
 			},
 		},
 		&common.StepProvision{},
-		&StepShutdown{},
+		&StepShutdown{
+			Command: b.config.Shutdown_cmd,
+		},
 	}
 
 	// Run!
