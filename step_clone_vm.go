@@ -28,6 +28,7 @@ func NewCloningEnv(state multistep.StateBag) *CloningEnv {
 type StepCloneVM struct{
 	vm_params VMParams
 	vm_custom VMCustomParams
+	success bool
 }
 
 func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
@@ -42,10 +43,37 @@ func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 	}
 
 	state.Put("vm", vm)
+	s.success = true
 	return multistep.ActionContinue
 }
 
-func (s *StepCloneVM) Cleanup(multistep.StateBag) {}
+func (s *StepCloneVM) Cleanup(state multistep.StateBag) {
+	if !s.success {
+		return
+	}
+
+	_, cancelled := state.GetOk(multistep.StateCancelled)
+	_, halted := state.GetOk(multistep.StateHalted)
+
+	if cancelled || halted {
+		vm := state.Get("vm").(*object.VirtualMachine)
+		ctx := state.Get("ctx").(context.Context)
+		ui := state.Get("ui").(packer.Ui)
+
+		ui.Say("destroying VM...")
+
+		task, err := vm.Destroy(ctx)
+		if err != nil {
+			ui.Error(err.Error())
+			return
+		}
+		_, err = task.WaitForResult(ctx, nil)
+		if err != nil {
+			ui.Error(err.Error())
+			return
+		}
+	}
+}
 
 func CloneVM(vm_params VMParams, vm_custom VMCustomParams, env *CloningEnv) (vm *object.VirtualMachine, err error) {
 	vm = nil
