@@ -52,15 +52,17 @@ func (s *StepShutdown) Run(state multistep.StateBag) multistep.StepAction {
 			ui.Error(err.Error())
 			//return multistep.ActionHalt
 		}
-		//for power_state, err := vm.PowerState(ctx); err == nil && power_state != types.VirtualMachinePowerStatePoweredOff; {
+		//for power_state, err := vm.PowerState(ctx); power_state != types.VirtualMachinePowerStatePoweredOff; {
+		//	if err != nil {
+		//		state.Put("error", err)
+		//		ui.Error(err.Error())
+		//		return multistep.ActionHalt
+		//	}
+		//
+		//	ui.Say(fmt.Sprintf("VM state: %v", power_state))
 		//	ui.Say("Waiting for VM to finally shut down...")
 		//	time.Sleep(150 * time.Millisecond)
-		//} else if err != nil {
-		//	state.Put("error", err)
-		//	ui.Error(err.Error())
-		//	return multistep.ActionHalt
 		//}
-
 	} else {
 		ui.Say("Forcibly halting virtual machine...")
 
@@ -76,7 +78,6 @@ func (s *StepShutdown) Run(state multistep.StateBag) multistep.StepAction {
 	}
 
 	ui.Say("VM stopped")
-	state.Put(BuildSuccessFlag, true)
 	return multistep.ActionContinue
 }
 
