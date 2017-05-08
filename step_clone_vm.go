@@ -7,7 +7,6 @@ import (
 	"github.com/vmware/govmomi/vim25/types"
 	"github.com/vmware/govmomi/object"
 	"github.com/hashicorp/packer/packer"
-	"strconv"
 )
 
 type CloningEnv struct {
@@ -28,16 +27,16 @@ func NewCloningEnv(state multistep.StateBag) *CloningEnv {
 
 type StepCloneVM struct{
 	config *Config
-	//vm_custom VMCustomParams
 	success bool
 }
 
 func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	ui.Say("start cloning...")
+	confSpec := state.Get("confSpec").(types.VirtualMachineConfigSpec)
 
 	env := NewCloningEnv(state)
-	vm, err := CloneVM(s.config, env)
+	vm, err := CloneVM(s.config, env, &confSpec)
 	if err != nil {
 		state.Put("error", err)
 		return multistep.ActionHalt
@@ -76,35 +75,15 @@ func (s *StepCloneVM) Cleanup(state multistep.StateBag) {
 	}
 }
 
-func CloneVM(config *Config, env *CloningEnv) (vm *object.VirtualMachine, err error) {
+func CloneVM(config *Config, env *CloningEnv, confSpec *types.VirtualMachineConfigSpec) (vm *object.VirtualMachine, err error) {
 	vm = nil
 	err = nil
 
-	// Creating spec's for cloning
+	// Creating specs for cloning
 	var relocateSpec types.VirtualMachineRelocateSpec
-
-	var confSpec types.VirtualMachineConfigSpec
-	// configure HW
-	if config.Cpus != "" {
-		cpus, err := strconv.Atoi(config.Cpus)
-		if err != nil {
-			return nil, err
-		}
-
-		confSpec.NumCPUs = int32(cpus)
-	}
-	if config.Ram != "" {
-		ram, err := strconv.Atoi(config.Ram)
-		if err != nil {
-			return nil, err
-		}
-
-		confSpec.MemoryMB = int64(ram)
-	}
-
 	cloneSpec := types.VirtualMachineCloneSpec{
 		Location: relocateSpec,
-		Config:   &confSpec,
+		Config:   confSpec,
 		PowerOn:  false,
 	}
 
