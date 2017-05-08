@@ -22,36 +22,28 @@ func (s *StepRun) Run(state multistep.StateBag) multistep.StepAction {
 	ui.Say("VM power on...")
 	task, err := vm.PowerOn(ctx)
 	if err != nil {
+		state.Put("error", err)
 		return multistep.ActionHalt
 	}
 	_, err = task.WaitForResult(ctx, nil)
 	if err != nil {
-		return multistep.ActionHalt
-	}
-
-	ui.Say("VM mounting tools...")
-	err = vm.MountToolsInstaller(ctx)
-	if err != nil {
+		state.Put("error", err)
 		return multistep.ActionHalt
 	}
 
 	ui.Say("VM waiting for IP...")
 	ip, err := vm.WaitForIP(ctx)
 	if err != nil {
+		state.Put("error", err)
 		return multistep.ActionHalt
 	}
 
 	state.Put("ip", ip)
 	ui.Say(fmt.Sprintf("VM ip %v", ip))
-	s.success = true
 	return multistep.ActionContinue
 }
 
 func (s *StepRun) Cleanup(state multistep.StateBag) {
-	if !s.success {
-		return
-	}
-
 	_, cancelled := state.GetOk(multistep.StateCancelled)
 	_, halted := state.GetOk(multistep.StateHalted)
 
