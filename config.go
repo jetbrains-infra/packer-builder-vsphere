@@ -18,8 +18,6 @@ type Config struct {
 	Url              string `mapstructure:"url"`
 	Username         string `mapstructure:"username"`
 	Password         string `mapstructure:"password"`
-	Ssh_username     string `mapstructure:"ssh_username"`
-	Ssh_password     string `mapstructure:"ssh_password"`
 
 	Template         string `mapstructure:"template"`
 	Vm_name          string `mapstructure:"vm_name"`
