@@ -62,7 +62,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 		},
 		&common.StepProvision{},
 		&StepShutdown{
-			Command: b.config.Shutdown_command,
+			Command: b.config.ShutdownCommand,
 		},
 	}
 
@@ -86,7 +86,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 
 	// No errors, must've worked
 	artifact := &Artifact{
-		VMName: b.config.Vm_name,
+		VMName: b.config.VMName,
 	}
 	return artifact, nil
 }

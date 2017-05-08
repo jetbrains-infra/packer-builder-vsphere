@@ -8,7 +8,6 @@ import (
 	"github.com/vmware/govmomi/object"
 	"github.com/hashicorp/packer/packer"
 	"github.com/vmware/govmomi/find"
-	"github.com/vmware/govmomi/vim25/mo"
 	"fmt"
 	"net/url"
 )
@@ -16,8 +15,8 @@ import (
 type CloneParameters struct {
 	client   *govmomi.Client
 	folder   *object.Folder
-	vm_src   *object.VirtualMachine
-	ctx       context.Context
+	vmSrc    *object.VirtualMachine
+	ctx      context.Context
 	config   *Config
 	confSpec *types.VirtualMachineConfigSpec
 }
@@ -39,28 +38,28 @@ func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 		state.Put("error", err)
 		return multistep.ActionHalt
 	}
-	finder, ctx, err := createFinder(ctx, client, s.config.Dc_name)
+	finder, ctx, err := createFinder(ctx, client, s.config.DCName)
 	if err != nil {
 		state.Put("error", err)
 		return multistep.ActionHalt
 	}
-	folder, err := finder.FolderOrDefault(ctx, s.config.Folder_name)
+	folder, err := finder.FolderOrDefault(ctx, s.config.FolderName)
 	if err != nil {
 		state.Put("error", err)
 		return multistep.ActionHalt
 	}
-	vm_src, err := finder.VirtualMachine(ctx, s.config.Template)
+	vmSrc, err := finder.VirtualMachine(ctx, s.config.Template)
 	if err != nil {
 		state.Put("error", err)
 		return multistep.ActionHalt
 	}
 
 	cloneParameters := CloneParameters{
-		client: client,
-		folder: folder,
-		vm_src: vm_src,
-		ctx: ctx,
-		config: s.config,
+		client:   client,
+		folder:   folder,
+		vmSrc:    vmSrc,
+		ctx:      ctx,
+		config:   s.config,
 		confSpec: &confSpec,
 	}
 
@@ -117,7 +116,7 @@ func cloneVM(params *CloneParameters) (vm *object.VirtualMachine, err error) {
 	}
 
 	// Cloning itself
-	task, err := params.vm_src.Clone(params.ctx, params.folder, params.config.Vm_name, cloneSpec)
+	task, err := params.vmSrc.Clone(params.ctx, params.folder, params.config.VMName, cloneSpec)
 	if err != nil {
 		return
 	}
@@ -152,23 +151,18 @@ func createClient(URL, username, password string) (*govmomi.Client, context.Cont
 	return client, ctx, nil
 }
 
-func createFinder(ctx context.Context, client *govmomi.Client, dc_name string) (*find.Finder, context.Context, error) {
+func createFinder(ctx context.Context, client *govmomi.Client, dcName string) (*find.Finder, context.Context, error) {
 	// Create a finder to search for a vm with the specified name
 	finder := find.NewFinder(client.Client, false)
 	// Need to specify the datacenter
-	if dc_name == "" {
+	if dcName == "" {
 		dc, err := finder.DefaultDatacenter(ctx)
-		if err != nil {
-			return nil, nil, err
-		}
-		var dc_mo mo.Datacenter
-		err = dc.Properties(ctx, dc.Reference(), []string{"name"}, &dc_mo)
 		if err != nil {
 			return nil, nil, err
 		}
 		finder.SetDatacenter(dc)
 	} else {
-		dc, err := finder.Datacenter(ctx, dc_name)
+		dc, err := finder.Datacenter(ctx, dcName)
 		if err != nil {
 			return nil, nil, err
 		}

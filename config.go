@@ -19,14 +19,14 @@ type Config struct {
 	Username         string `mapstructure:"username"`
 	Password         string `mapstructure:"password"`
 
-	Template         string `mapstructure:"template"`
-	Vm_name          string `mapstructure:"vm_name"`
-	Folder_name      string `mapstructure:"folder_name"`
-	Dc_name          string `mapstructure:"dc_name"`
+	Template   string `mapstructure:"template"`
+	VMName     string `mapstructure:"vm_name"`
+	FolderName string `mapstructure:"folder_name"`
+	DCName     string `mapstructure:"dc_name"`
 
-	Cpus             string `mapstructure:"cpus"`
-	Shutdown_command string `mapstructure:"shutdown_command"`
-	Ram              string `mapstructure:"RAM"`
+	Cpus            string `mapstructure:"cpus"`
+	ShutdownCommand string `mapstructure:"shutdown_command"`
+	Ram             string `mapstructure:"RAM"`
 	//TODO: add more options
 
 	ctx      interpolate.Context
@@ -61,7 +61,7 @@ func NewConfig(raws ...interface{}) (*Config, []string, error) {
 	if c.Template == "" {
 		errs = packer.MultiErrorAppend(errs, fmt.Errorf("Template VM name required"))
 	}
-	if c.Vm_name == "" {
+	if c.VMName == "" {
 		errs = packer.MultiErrorAppend(errs, fmt.Errorf("Target VM name required"))
 	}
 
@@ -79,7 +79,7 @@ func NewConfig(raws ...interface{}) (*Config, []string, error) {
 
 	// Warnings
 	var warnings []string
-	if c.Shutdown_command == "" {
+	if c.ShutdownCommand == "" {
 		warnings = append(warnings,
 			"A shutdown_command was not specified. Without a shutdown command, Packer\n"+
 				"will forcibly halt the virtual machine, which may result in data loss.")
