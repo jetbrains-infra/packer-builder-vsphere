@@ -11,60 +11,34 @@ import (
 	"strconv"
 )
 
-const Unspecified = -1
-
-type VMCustomParams struct {
-	Cpu_sockets int
-	Ram         int
-	// TODO: add more options
-}
-
-type VMParams struct {
-	Url            string
-	Username       string
-	Password       string
-	Dc_name        string
-	Folder_name    string
-	Vm_source_name string
-	Vm_target_name string
-}
-
 type Config struct {
 	common.PackerConfig `mapstructure:",squash"`
 	communicator.Config `mapstructure:",squash"`
 
-	Url            string `mapstructure:"url"`
-	Username       string `mapstructure:"username"`
-	Password       string `mapstructure:"password"`
-	Ssh_username   string `mapstructure:"ssh_username"`
-	Ssh_password   string `mapstructure:"ssh_password"`
+	Url              string `mapstructure:"url"`
+	Username         string `mapstructure:"username"`
+	Password         string `mapstructure:"password"`
+	Ssh_username     string `mapstructure:"ssh_username"`
+	Ssh_password     string `mapstructure:"ssh_password"`
 
-	Dc_name        string `mapstructure:"dc_name"`
-	Vm_source_name string `mapstructure:"template"`
-	Vm_target_name string `mapstructure:"vm_name"`
+	Template         string `mapstructure:"template"`
+	Vm_name          string `mapstructure:"vm_name"`
+	Folder_name      string `mapstructure:"folder_name"`
+	Dc_name          string `mapstructure:"dc_name"`
 
-	Cpu_sockets    string `mapstructure:"cpus"`
-	Shutdown_cmd   string `mapstructure:"shutdown_command"`
-	Ram            string `mapstructure:"RAM"`
-
-	// internal
-	vm_params VMParams
-	vm_custom VMCustomParams
+	Cpus             string `mapstructure:"cpus"`
+	Shutdown_command string `mapstructure:"shutdown_command"`
+	Ram              string `mapstructure:"RAM"`
+	//TODO: add more options
 
 	ctx      interpolate.Context
 }
-
 
 func NewConfig(raws ...interface{}) (*Config, []string, error) {
 	c := new(Config)
 	err := config.Decode(c, &config.DecodeOpts{
 		Interpolate:        true,
 		InterpolateContext: &c.ctx,
-		InterpolateFilter: &interpolate.RenderFilter{
-			Exclude: []string{
-				"shutdown_command",
-			},
-		},
 	}, raws...)
 	if err != nil {
 		return nil, nil, err
@@ -77,22 +51,37 @@ func NewConfig(raws ...interface{}) (*Config, []string, error) {
 	errs = packer.MultiErrorAppend(errs, c.Config.Prepare(&c.ctx)...)
 
 	// Check the required params
-	templates := map[string]*string{
-		"url":            &c.Url,
-		"username":       &c.Username,
-		"password":       &c.Password,
-		"vm_source_name": &c.Vm_source_name,
+	if c.Url == "" {
+		errs = packer.MultiErrorAppend(errs, fmt.Errorf("URL required"))
 	}
-	for key, ptr := range templates {
-		if *ptr == "" {
-			errs = packer.MultiErrorAppend(
-				errs, fmt.Errorf("%s must be set, %s is present", key, *ptr))
+	if c.Username == "" {
+		errs = packer.MultiErrorAppend(errs, fmt.Errorf("Username required"))
+	}
+	if c.Password == "" {
+		errs = packer.MultiErrorAppend(errs, fmt.Errorf("Password required"))
+	}
+	if c.Template == "" {
+		errs = packer.MultiErrorAppend(errs, fmt.Errorf("Template VM name required"))
+	}
+	if c.Vm_name == "" {
+		errs = packer.MultiErrorAppend(errs, fmt.Errorf("Target VM name required"))
+	}
+
+	// Verify numeric parameters if present
+	if c.Cpus != "" {
+		if _, err = strconv.Atoi(c.Cpus); err != nil {
+			errs = packer.MultiErrorAppend(errs, fmt.Errorf("Invalid number of cpu sockets"))
+		}
+	}
+	if c.Ram != "" {
+		if _, err = strconv.Atoi(c.Ram); err != nil {
+			errs = packer.MultiErrorAppend(errs, fmt.Errorf("Invalid number for Ram"))
 		}
 	}
 
 	// Warnings
 	var warnings []string
-	if c.Shutdown_cmd == "" {
+	if c.Shutdown_command == "" {
 		warnings = append(warnings,
 			"A shutdown_command was not specified. Without a shutdown command, Packer\n"+
 				"will forcibly halt the virtual machine, which may result in data loss.")
@@ -101,35 +90,6 @@ func NewConfig(raws ...interface{}) (*Config, []string, error) {
 	if len(errs.Errors) > 0 {
 		return nil, warnings, errs
 	}
-
-	// Set defaults
-	if c.Vm_target_name == "" {
-		c.Vm_target_name = c.Vm_source_name + "_clone"
-	}
-
-	// Set custom params
-	c.vm_custom.Cpu_sockets = Unspecified
-	if c.Cpu_sockets != "" {
-		c.vm_custom.Cpu_sockets, err = strconv.Atoi(c.Cpu_sockets)
-		if err != nil {
-			return nil, warnings, err
-		}
-	}
-	c.vm_custom.Ram = Unspecified
-	if c.Ram != "" {
-		c.vm_custom.Ram, err = strconv.Atoi(c.Ram)
-		if err != nil {
-			return nil, warnings, err
-		}
-	}
-
-	// Set required params
-	c.vm_params.Url = c.Url
-	c.vm_params.Username = c.Username
-	c.vm_params.Password = c.Password
-	c.vm_params.Dc_name = c.Dc_name
-	c.vm_params.Vm_source_name = c.Vm_source_name
-	c.vm_params.Vm_target_name = c.Vm_target_name
 
 	return c, warnings, nil
 }

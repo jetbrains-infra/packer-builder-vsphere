@@ -7,6 +7,7 @@ import (
 	"github.com/vmware/govmomi/vim25/types"
 	"github.com/vmware/govmomi/object"
 	"github.com/hashicorp/packer/packer"
+	"strconv"
 )
 
 type CloningEnv struct {
@@ -26,8 +27,8 @@ func NewCloningEnv(state multistep.StateBag) *CloningEnv {
 }
 
 type StepCloneVM struct{
-	vm_params VMParams
-	vm_custom VMCustomParams
+	config *Config
+	//vm_custom VMCustomParams
 	success bool
 }
 
@@ -36,7 +37,7 @@ func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 	ui.Say("start cloning...")
 
 	env := NewCloningEnv(state)
-	vm, err := CloneVM(s.vm_params, s.vm_custom, env)
+	vm, err := CloneVM(s.config, env)
 	if err != nil {
 		state.Put("error", err)
 		return multistep.ActionHalt
@@ -75,7 +76,7 @@ func (s *StepCloneVM) Cleanup(state multistep.StateBag) {
 	}
 }
 
-func CloneVM(vm_params VMParams, vm_custom VMCustomParams, env *CloningEnv) (vm *object.VirtualMachine, err error) {
+func CloneVM(config *Config, env *CloningEnv) (vm *object.VirtualMachine, err error) {
 	vm = nil
 	err = nil
 
@@ -84,11 +85,21 @@ func CloneVM(vm_params VMParams, vm_custom VMCustomParams, env *CloningEnv) (vm 
 
 	var confSpec types.VirtualMachineConfigSpec
 	// configure HW
-	if vm_custom.Cpu_sockets != Unspecified {
-		confSpec.NumCPUs = int32(vm_custom.Cpu_sockets)
+	if config.Cpus != "" {
+		cpus, err := strconv.Atoi(config.Cpus)
+		if err != nil {
+			return nil, err
+		}
+
+		confSpec.NumCPUs = int32(cpus)
 	}
-	if vm_custom.Ram != Unspecified {
-		confSpec.MemoryMB = int64(vm_custom.Ram)
+	if config.Ram != "" {
+		ram, err := strconv.Atoi(config.Ram)
+		if err != nil {
+			return nil, err
+		}
+
+		confSpec.MemoryMB = int64(ram)
 	}
 
 	cloneSpec := types.VirtualMachineCloneSpec{
@@ -98,7 +109,7 @@ func CloneVM(vm_params VMParams, vm_custom VMCustomParams, env *CloningEnv) (vm 
 	}
 
 	// Cloning itself
-	task, err := env.vm_src.Clone(env.ctx, env.folder, vm_params.Vm_target_name, cloneSpec)
+	task, err := env.vm_src.Clone(env.ctx, env.folder, config.Vm_name, cloneSpec)
 	if err != nil {
 		return
 	}

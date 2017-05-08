@@ -36,11 +36,10 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	// Build the steps.
 	steps := []multistep.Step{
 		&StepSetupCloningEnv{
-			vm_params: b.config.vm_params,
+			config: b.config,
 		},
 		&StepCloneVM{
-			vm_params: b.config.vm_params,
-			vm_custom: b.config.vm_custom,
+			config: b.config,
 		},
 		&StepRun{},
 		&communicator.StepConnect{
@@ -63,7 +62,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 		},
 		&common.StepProvision{},
 		&StepShutdown{
-			Command: b.config.Shutdown_cmd,
+			Command: b.config.Shutdown_command,
 		},
 	}
 
