@@ -35,9 +35,6 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 
 	// Build the steps.
 	steps := []multistep.Step{
-		&StepSetupCloningEnv{
-			config: b.config,
-		},
 		&StepConfigureHW{
 			config: b.config,
 		},
