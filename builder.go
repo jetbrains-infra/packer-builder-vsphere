@@ -85,7 +85,9 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	}
 
 	// No errors, must've worked
-	artifact := &Artifact{}
+	artifact := &Artifact{
+		VMName: b.config.Vm_name,
+	}
 	return artifact, nil
 }
 

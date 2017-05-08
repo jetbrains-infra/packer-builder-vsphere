@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-const BuilderId = "LizaTretyakova.builder.vsphere-device"
+const BuilderId = "LizaTretyakova.vsphere"
 
 type ArtifactFile struct {
 	Name string `json:"name"`
@@ -16,6 +16,8 @@ type Artifact struct {
 	ArtifactFiles []ArtifactFile `json:"files"`
 	ArtifactId    string         `json:"artifact_id"`
 	PackerRunUUID string         `json:"packer_run_uuid"`
+
+	VMName        string         `json:"vm_name"`
 }
 
 func (a *Artifact) BuilderId() string {
