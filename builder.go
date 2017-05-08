@@ -49,11 +49,11 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			},
 			SSHConfig: func(multistep.StateBag) (*gossh.ClientConfig, error) {
 				return &gossh.ClientConfig{
-					User: b.config.Ssh_username,
+					User: b.config.Config.SSHUsername,
 					Auth: []gossh.AuthMethod{
-						gossh.Password(b.config.Ssh_password),
+						gossh.Password(b.config.Config.SSHPassword),
 						gossh.KeyboardInteractive(
-							ssh.PasswordKeyboardInteractive(b.config.Ssh_password)),
+							ssh.PasswordKeyboardInteractive(b.config.Config.SSHPassword)),
 					},
 					// TODO: add a proper verification
 					HostKeyCallback: gossh.InsecureIgnoreHostKey(),
