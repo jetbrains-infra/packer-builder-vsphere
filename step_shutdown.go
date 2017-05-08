@@ -46,33 +46,31 @@ func (s *StepShutdown) Run(state multistep.StateBag) multistep.StepAction {
 			ui.Say("Waiting for remote cmd to finish...")
 			time.Sleep(150 * time.Millisecond)
 		}
-		if cmd.ExitStatus != 0 {
+		if cmd.ExitStatus != 0 && cmd.ExitStatus != packer.CmdDisconnect {
 			err := fmt.Errorf("Cmd exit status %v, not 0", cmd.ExitStatus)
-			//state.Put("error", err)
+			state.Put("error", err)
 			ui.Error(err.Error())
-			//return multistep.ActionHalt
+			return multistep.ActionHalt
+		} else if cmd.ExitStatus == packer.CmdDisconnect {
+			ui.Say("VM disconnected")
 		}
-		//for power_state, err := vm.PowerState(ctx); power_state != types.VirtualMachinePowerStatePoweredOff; {
-		//	if err != nil {
-		//		state.Put("error", err)
-		//		ui.Error(err.Error())
-		//		return multistep.ActionHalt
-		//	}
-		//
-		//	ui.Say(fmt.Sprintf("VM state: %v", power_state))
-		//	ui.Say("Waiting for VM to finally shut down...")
-		//	time.Sleep(150 * time.Millisecond)
-		//}
 	} else {
 		ui.Say("Forcibly halting virtual machine...")
 
-		// TODO: possibly add vm.ShutdownGuest()?
+		err := vm.ShutdownGuest(ctx)
+		if err != nil {
+			state.Put("error", err)
+			return multistep.ActionHalt
+		}
+
 		task, err := vm.PowerOff(ctx)
 		if err != nil {
+			state.Put("error", err)
 			return multistep.ActionHalt
 		}
 		_, err = task.WaitForResult(ctx, nil)
 		if err != nil {
+			state.Put("error", err)
 			return multistep.ActionHalt
 		}
 	}
