@@ -17,7 +17,7 @@ type CloneParameters struct {
 	folder   *object.Folder
 	vmSrc    *object.VirtualMachine
 	ctx      context.Context
-	config   *Config
+	vmName   string
 	confSpec *types.VirtualMachineConfigSpec
 }
 
@@ -59,7 +59,7 @@ func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 		folder:   folder,
 		vmSrc:    vmSrc,
 		ctx:      ctx,
-		config:   s.config,
+		vmName: s.config.VMName,
 		confSpec: &confSpec,
 	}
 
@@ -116,7 +116,7 @@ func cloneVM(params *CloneParameters) (vm *object.VirtualMachine, err error) {
 	}
 
 	// Cloning itself
-	task, err := params.vmSrc.Clone(params.ctx, params.folder, params.config.VMName, cloneSpec)
+	task, err := params.vmSrc.Clone(params.ctx, params.folder, params.vmName, cloneSpec)
 	if err != nil {
 		return
 	}
