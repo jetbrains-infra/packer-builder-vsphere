@@ -5,6 +5,8 @@ import (
 	"github.com/hashicorp/packer/packer"
 	"strconv"
 	"github.com/vmware/govmomi/vim25/types"
+	"context"
+	"github.com/vmware/govmomi/object"
 )
 
 type StepConfigureHW struct{
@@ -14,6 +16,8 @@ type StepConfigureHW struct{
 func (s *StepConfigureHW) Run(state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	ui.Say("configuring virtual hardware...")
+	vm := state.Get("vm").(*object.VirtualMachine)
+	ctx := state.Get("ctx").(context.Context)
 
 	var confSpec types.VirtualMachineConfigSpec
 	// configure HW
@@ -36,7 +40,16 @@ func (s *StepConfigureHW) Run(state multistep.StateBag) multistep.StepAction {
 		confSpec.MemoryMB = int64(ram)
 	}
 
-	state.Put("confSpec", confSpec)
+	task, err := vm.Reconfigure(ctx, confSpec)
+	if err != nil {
+		state.Put("error", err)
+		return multistep.ActionHalt
+	}
+	_, err = task.WaitForResult(ctx, nil)
+	if err != nil {
+		state.Put("error", err)
+		return multistep.ActionHalt
+	}
 
 	return multistep.ActionContinue
 }
