@@ -10,7 +10,6 @@ import (
 )
 
 type StepRun struct{
-	success bool
 	// TODO: add boot time to provide a proper timeout during cleanup
 }
 
