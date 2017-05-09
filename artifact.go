@@ -2,11 +2,6 @@ package main
 
 const BuilderId = "LizaTretyakova.vsphere"
 
-type ArtifactFile struct {
-	Name string `json:"name"`
-	Size int64  `json:"size"`
-}
-
 type Artifact struct {
 	VMName        string         `json:"vm_name"`
 }
