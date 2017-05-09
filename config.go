@@ -79,11 +79,6 @@ func NewConfig(raws ...interface{}) (*Config, []string, error) {
 
 	// Warnings
 	var warnings []string
-	if c.ShutdownCommand == "" {
-		warnings = append(warnings,
-			"A shutdown_command was not specified. Without a shutdown command, Packer\n"+
-				"will forcibly halt the virtual machine, which may result in data loss.")
-	}
 
 	if len(errs.Errors) > 0 {
 		return nil, warnings, errs
