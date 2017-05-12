@@ -14,12 +14,11 @@ type StepConfigureHW struct{
 }
 
 func (s *StepConfigureHW) Run(state multistep.StateBag) multistep.StepAction {
-	ui := state.Get("ui").(packer.Ui)
-	ui.Say("configuring virtual hardware...")
 	vm := state.Get("vm").(*object.VirtualMachine)
 	ctx := state.Get("ctx").(context.Context)
 
 	var confSpec types.VirtualMachineConfigSpec
+	confNotEmpty := false
 	// configure HW
 	if s.config.Cpus != "" {
 		cpus, err := strconv.Atoi(s.config.Cpus)
@@ -28,6 +27,7 @@ func (s *StepConfigureHW) Run(state multistep.StateBag) multistep.StepAction {
 			return multistep.ActionHalt
 		}
 
+		confNotEmpty = true
 		confSpec.NumCPUs = int32(cpus)
 	}
 	if s.config.Ram != "" {
@@ -37,18 +37,25 @@ func (s *StepConfigureHW) Run(state multistep.StateBag) multistep.StepAction {
 			return multistep.ActionHalt
 		}
 
+		confNotEmpty = true
 		confSpec.MemoryMB = int64(ram)
 	}
 
-	task, err := vm.Reconfigure(ctx, confSpec)
-	if err != nil {
-		state.Put("error", err)
-		return multistep.ActionHalt
-	}
-	_, err = task.WaitForResult(ctx, nil)
-	if err != nil {
-		state.Put("error", err)
-		return multistep.ActionHalt
+	ui := state.Get("ui").(packer.Ui)
+	if confNotEmpty {
+		ui.Say("configuring virtual hardware...")
+		task, err := vm.Reconfigure(ctx, confSpec)
+		if err != nil {
+			state.Put("error", err)
+			return multistep.ActionHalt
+		}
+		_, err = task.WaitForResult(ctx, nil)
+		if err != nil {
+			state.Put("error", err)
+			return multistep.ActionHalt
+		}
+	} else {
+		ui.Say("skipping the virtual hardware configration...")
 	}
 
 	return multistep.ActionContinue
