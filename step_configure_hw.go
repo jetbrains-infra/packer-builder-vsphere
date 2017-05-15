@@ -13,12 +13,26 @@ type StepConfigureHW struct{
 	config *Config
 }
 
+type ConfigParametersFlag struct {
+	NumCPUsPtr  *int32
+	MemoryMBPtr *int64
+}
+
+func DefaultConfigParametersFlag() (c *ConfigParametersFlag) {
+	c.NumCPUsPtr, c.MemoryMBPtr = nil, nil
+	return
+}
+
+func (c *ConfigParametersFlag) isEmpty() bool {
+	return c.NumCPUsPtr == nil && c.MemoryMBPtr == nil
+}
+
 func (s *StepConfigureHW) Run(state multistep.StateBag) multistep.StepAction {
 	vm := state.Get("vm").(*object.VirtualMachine)
 	ctx := state.Get("ctx").(context.Context)
 
 	var confSpec types.VirtualMachineConfigSpec
-	confNotEmpty := false
+	parametersFlag := DefaultConfigParametersFlag()
 	// configure HW
 	if s.config.Cpus != "" {
 		cpus, err := strconv.Atoi(s.config.Cpus)
@@ -27,8 +41,8 @@ func (s *StepConfigureHW) Run(state multistep.StateBag) multistep.StepAction {
 			return multistep.ActionHalt
 		}
 
-		confNotEmpty = true
 		confSpec.NumCPUs = int32(cpus)
+		parametersFlag.NumCPUsPtr = &(confSpec.NumCPUs)
 	}
 	if s.config.Ram != "" {
 		ram, err := strconv.Atoi(s.config.Ram)
@@ -37,12 +51,12 @@ func (s *StepConfigureHW) Run(state multistep.StateBag) multistep.StepAction {
 			return multistep.ActionHalt
 		}
 
-		confNotEmpty = true
 		confSpec.MemoryMB = int64(ram)
+		parametersFlag.MemoryMBPtr = &(confSpec.MemoryMB)
 	}
 
 	ui := state.Get("ui").(packer.Ui)
-	if confNotEmpty {
+	if !parametersFlag.isEmpty() {
 		ui.Say("configuring virtual hardware...")
 		task, err := vm.Reconfigure(ctx, confSpec)
 		if err != nil {
