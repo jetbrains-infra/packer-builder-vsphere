@@ -18,21 +18,12 @@ type ConfigParametersFlag struct {
 	MemoryMBPtr *int64
 }
 
-func DefaultConfigParametersFlag() (c *ConfigParametersFlag) {
-	c.NumCPUsPtr, c.MemoryMBPtr = nil, nil
-	return
-}
-
-func (c *ConfigParametersFlag) isEmpty() bool {
-	return c.NumCPUsPtr == nil && c.MemoryMBPtr == nil
-}
-
 func (s *StepConfigureHW) Run(state multistep.StateBag) multistep.StepAction {
 	vm := state.Get("vm").(*object.VirtualMachine)
 	ctx := state.Get("ctx").(context.Context)
 
 	var confSpec types.VirtualMachineConfigSpec
-	parametersFlag := DefaultConfigParametersFlag()
+	parametersFlag := ConfigParametersFlag{}
 	// configure HW
 	if s.config.Cpus != "" {
 		cpus, err := strconv.Atoi(s.config.Cpus)
@@ -56,7 +47,7 @@ func (s *StepConfigureHW) Run(state multistep.StateBag) multistep.StepAction {
 	}
 
 	ui := state.Get("ui").(packer.Ui)
-	if !parametersFlag.isEmpty() {
+	if parametersFlag != (ConfigParametersFlag{}) {
 		ui.Say("configuring virtual hardware...")
 		task, err := vm.Reconfigure(ctx, confSpec)
 		if err != nil {
