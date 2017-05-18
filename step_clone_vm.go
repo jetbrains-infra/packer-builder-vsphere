@@ -15,6 +15,8 @@ import (
 type CloneParameters struct {
 	client   *govmomi.Client
 	folder   *object.Folder
+	host	 types.ManagedObjectReference
+	resourcePool types.ManagedObjectReference
 	vmSrc    *object.VirtualMachine
 	ctx      context.Context
 	vmName   string
@@ -50,16 +52,26 @@ func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 		state.Put("error", err)
 		return multistep.ActionHalt
 	}
-
-	cloneParameters := CloneParameters{
-		client:   client,
-		folder:   folder,
-		vmSrc:    vmSrc,
-		ctx:      ctx,
-		vmName: s.config.VMName,
+	host, err := finder.HostSystem(ctx, s.config.Host)
+	if err != nil {
+		state.Put("error", err)
+		return multistep.ActionHalt
+	}
+	resourcePool, err := finder.ResourcePoolOrDefault(ctx, s.config.ResourcePool)
+	if err != nil {
+		state.Put("error", err)
+		return multistep.ActionHalt
 	}
 
-	vm, err := cloneVM(&cloneParameters)
+	vm, err := cloneVM(&CloneParameters{
+		client:       client,
+		folder:       folder,
+		host:         host.Reference(),
+		resourcePool: resourcePool.Reference(),
+		vmSrc:        vmSrc,
+		ctx:          ctx,
+		vmName:       s.config.VMName,
+	})
 	if err != nil {
 		state.Put("error", err)
 		return multistep.ActionHalt
@@ -104,7 +116,11 @@ func cloneVM(params *CloneParameters) (vm *object.VirtualMachine, err error) {
 	err = nil
 
 	// Creating specs for cloning
-	var relocateSpec types.VirtualMachineRelocateSpec
+	relocateSpec := types.VirtualMachineRelocateSpec{
+		Pool: &(params.resourcePool),
+		Host: &(params.host),
+	}
+
 	cloneSpec := types.VirtualMachineCloneSpec{
 		Location: relocateSpec,
 		PowerOn:  false,
