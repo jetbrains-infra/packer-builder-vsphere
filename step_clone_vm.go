@@ -34,31 +34,41 @@ func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 	// Prepare entities: client (authentification), finder, folder, virtual machine
 	client, ctx, err := createClient(s.config.Url, s.config.Username, s.config.Password)
 	if err != nil {
+		ui.Say("error creating client")
 		state.Put("error", err)
 		return multistep.ActionHalt
 	}
 	finder, ctx, err := createFinder(ctx, client, s.config.DCName)
 	if err != nil {
+		ui.Say("error creating finder")
 		state.Put("error", err)
 		return multistep.ActionHalt
 	}
 	folder, err := finder.FolderOrDefault(ctx, s.config.FolderName)
 	if err != nil {
+		ui.Say("error creating folder")
 		state.Put("error", err)
 		return multistep.ActionHalt
 	}
 	vmSrc, err := finder.VirtualMachine(ctx, s.config.Template)
 	if err != nil {
+		ui.Say("error creating vmSrc")
 		state.Put("error", err)
 		return multistep.ActionHalt
 	}
 	host, err := finder.HostSystem(ctx, s.config.Host)
 	if err != nil {
+		ui.Say("error creating host")
 		state.Put("error", err)
 		return multistep.ActionHalt
 	}
 	resourcePool, err := finder.ResourcePoolOrDefault(ctx, s.config.ResourcePool)
 	if err != nil {
+		ui.Say("error creating resourcePool")
+		resPoolList, err := finder.ResourcePoolList(ctx, s.config.ResourcePool)
+		for i := 0; i < len(resPoolList); i += 1 {
+			ui.Say(resPoolList[i].InventoryPath)
+		}
 		state.Put("error", err)
 		return multistep.ActionHalt
 	}
@@ -71,7 +81,7 @@ func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 		vmSrc:        vmSrc,
 		ctx:          ctx,
 		vmName:       s.config.VMName,
-	})
+	}, ui)
 	if err != nil {
 		state.Put("error", err)
 		return multistep.ActionHalt
@@ -111,11 +121,12 @@ func (s *StepCloneVM) Cleanup(state multistep.StateBag) {
 	}
 }
 
-func cloneVM(params *CloneParameters) (vm *object.VirtualMachine, err error) {
+func cloneVM(params *CloneParameters, ui packer.Ui) (vm *object.VirtualMachine, err error) {
 	vm = nil
 	err = nil
 
 	// Creating specs for cloning
+	ui.Say("Creating specs")
 	relocateSpec := types.VirtualMachineRelocateSpec{
 		Pool: &(params.resourcePool),
 		Host: &(params.host),
@@ -127,17 +138,21 @@ func cloneVM(params *CloneParameters) (vm *object.VirtualMachine, err error) {
 	}
 
 	// Cloning itself
+	ui.Say("Cloning itself")
 	task, err := params.vmSrc.Clone(params.ctx, params.folder, params.vmName, cloneSpec)
 	if err != nil {
 		return
 	}
 
+	ui.Say("Wait for result")
 	info, err := task.WaitForResult(params.ctx, nil)
 	if err != nil {
 		return
 	}
 
+	ui.Say("Before creating vm")
 	vm = object.NewVirtualMachine(params.client.Client, info.Result.(types.ManagedObjectReference))
+	ui.Say("After creating VM")
 	return vm, nil
 }
 
