@@ -15,7 +15,6 @@ import (
 type CloneParameters struct {
 	client   *govmomi.Client
 	folder   *object.Folder
-	host	 types.ManagedObjectReference
 	resourcePool types.ManagedObjectReference
 	vmSrc    *object.VirtualMachine
 	ctx      context.Context
@@ -50,34 +49,38 @@ func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 		state.Put("error", err)
 		return multistep.ActionHalt
 	}
+	dc, err := finder.DatacenterOrDefault(ctx, s.config.DCName)
+	if err != nil {
+		ui.Say("error exploring datacenter")
+		state.Put("error", err)
+		return multistep.ActionHalt
+	}
 	vmSrc, err := finder.VirtualMachine(ctx, s.config.Template)
 	if err != nil {
 		ui.Say("error creating vmSrc")
 		state.Put("error", err)
 		return multistep.ActionHalt
 	}
-	host, err := finder.HostSystem(ctx, s.config.Host)
+	pool_ref, err := object.NewSearchIndex(client.Client).FindByInventoryPath(ctx, fmt.Sprintf("%v/host/%v/Resources/%v", dc.Name(), s.config.Host, s.config.ResourcePool))
 	if err != nil {
-		ui.Say("error creating host")
+		//return fmt.Errorf("Error reading resource pool: %s", err)
+		ui.Say(fmt.Sprintf("Error reading resource pool: %s", err))
 		state.Put("error", err)
 		return multistep.ActionHalt
 	}
-	resourcePool, err := finder.ResourcePoolOrDefault(ctx, s.config.ResourcePool)
-	if err != nil {
-		ui.Say("error creating resourcePool")
-		resPoolList, err := finder.ResourcePoolList(ctx, s.config.ResourcePool)
-		for i := 0; i < len(resPoolList); i += 1 {
-			ui.Say(resPoolList[i].InventoryPath)
-		}
+	if pool_ref == nil {
+		//return fmt.Errorf("Cannot find resource pool %s", pool_name)
+		ui.Say(fmt.Sprintf("Cannot find resource pool %s", s.config.ResourcePool))
 		state.Put("error", err)
 		return multistep.ActionHalt
+
 	}
 
 	vm, err := cloneVM(&CloneParameters{
 		client:       client,
 		folder:       folder,
-		host:         host.Reference(),
-		resourcePool: resourcePool.Reference(),
+		//host:         host.Reference(),
+		resourcePool: pool_ref.Reference(),
 		vmSrc:        vmSrc,
 		ctx:          ctx,
 		vmName:       s.config.VMName,
@@ -129,7 +132,6 @@ func cloneVM(params *CloneParameters, ui packer.Ui) (vm *object.VirtualMachine, 
 	ui.Say("Creating specs")
 	relocateSpec := types.VirtualMachineRelocateSpec{
 		Pool: &(params.resourcePool),
-		Host: &(params.host),
 	}
 
 	cloneSpec := types.VirtualMachineCloneSpec{
