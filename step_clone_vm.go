@@ -48,12 +48,16 @@ func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 		ui.Say("error creating folder")
 		state.Put("error", err)
 		return multistep.ActionHalt
+	} else {
+		ui.Say(fmt.Sprintf("Folder string: %v\nFolder path: %v\nFolder name: %v", folder.String(), folder.InventoryPath, folder.Name()))
 	}
 	dc, err := finder.DatacenterOrDefault(ctx, s.config.DCName)
 	if err != nil {
 		ui.Say("error exploring datacenter")
 		state.Put("error", err)
 		return multistep.ActionHalt
+	} else {
+		ui.Say(fmt.Sprintf("DC string: %v\nDC path: %v\nDC name: %v", dc.String(), dc.InventoryPath, dc.Name()))
 	}
 	vmSrc, err := finder.VirtualMachine(ctx, s.config.Template)
 	if err != nil {
