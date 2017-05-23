@@ -37,20 +37,8 @@ func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 		state.Put("error", err)
 		return multistep.ActionHalt
 	}
-	finder, ctx, err := createFinder(ctx, client, s.config.DCName)
-	if err != nil {
-		ui.Say("error creating finder")
-		state.Put("error", err)
-		return multistep.ActionHalt
-	}
-	folder, err := finder.FolderOrDefault(ctx, s.config.FolderName)
-	if err != nil {
-		ui.Say("error creating folder")
-		state.Put("error", err)
-		return multistep.ActionHalt
-	} else {
-		ui.Say(fmt.Sprintf("Folder string: %v\nFolder path: %v\nFolder name: %v", folder.String(), folder.InventoryPath, folder.Name()))
-	}
+
+	finder := find.NewFinder(client.Client, false)
 	dc, err := finder.DatacenterOrDefault(ctx, s.config.DCName)
 	if err != nil {
 		ui.Say("error exploring datacenter")
@@ -59,12 +47,24 @@ func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 	} else {
 		ui.Say(fmt.Sprintf("DC string: %v\nDC path: %v\nDC name: %v", dc.String(), dc.InventoryPath, dc.Name()))
 	}
+	finder.SetDatacenter(dc)
+
+	folder, err := finder.FolderOrDefault(ctx, s.config.FolderName)
+	if err != nil {
+		ui.Say("error creating folder")
+		state.Put("error", err)
+		return multistep.ActionHalt
+	} else {
+		ui.Say(fmt.Sprintf("Folder string: %v\nFolder path: %v\nFolder name: %v", folder.String(), folder.InventoryPath, folder.Name()))
+	}
+
 	vmSrc, err := finder.VirtualMachine(ctx, s.config.Template)
 	if err != nil {
 		ui.Say("error creating vmSrc")
 		state.Put("error", err)
 		return multistep.ActionHalt
 	}
+
 	pool_ref, err := object.NewSearchIndex(client.Client).FindByInventoryPath(ctx, fmt.Sprintf("%v/host/%v/Resources/%v", dc.Name(), s.config.Host, s.config.ResourcePool))
 	if err != nil {
 		//return fmt.Errorf("Error reading resource pool: %s", err)
@@ -181,24 +181,4 @@ func createClient(URL, username, password string) (*govmomi.Client, context.Cont
 	}
 
 	return client, ctx, nil
-}
-
-func createFinder(ctx context.Context, client *govmomi.Client, dcName string) (*find.Finder, context.Context, error) {
-	// Create a finder to search for a vm with the specified name
-	finder := find.NewFinder(client.Client, false)
-	// Need to specify the datacenter
-	if dcName == "" {
-		dc, err := finder.DefaultDatacenter(ctx)
-		if err != nil {
-			return nil, nil, err
-		}
-		finder.SetDatacenter(dc)
-	} else {
-		dc, err := finder.Datacenter(ctx, dcName)
-		if err != nil {
-			return nil, nil, err
-		}
-		finder.SetDatacenter(dc)
-	}
-	return finder, ctx, nil
 }
