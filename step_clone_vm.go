@@ -17,6 +17,7 @@ type CloneParameters struct {
 	folder          *object.Folder
 	hostRef         types.ManagedObjectReference
 	resourcePoolRef types.ManagedObjectReference
+	datastore       types.ManagedObjectReference
 	vmSrc           *object.VirtualMachine
 	ctx             context.Context
 	vmName          string
@@ -87,7 +88,13 @@ func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 		return multistep.ActionHalt
 	}
 
-	//datastore, err := finder.DatastoreOrDefault(ctx, )
+	datastore, err := finder.DatastoreOrDefault(ctx, "datastore2")
+	if err != nil {
+		ui.Say("Cannot find datastore datastore2")
+		state.Put("error", err)
+		return multistep.ActionHalt
+	}
+
 	vm_mor, err := 	object.NewSearchIndex(client.Client).FindByDatastorePath(ctx, dc, "[datastore1] ubuntu/ubuntu.vmtx")
 	//object.NewSearchIndex(client.Client).FindByInventoryPath(ctx, fmt.Sprintf(fmt.Sprintf("%s/vm/%s", dc.Name(), s.config.Template)))
 	if err != nil {
@@ -108,6 +115,7 @@ func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 		folder:          folder,
 		hostRef:         host.Reference(),
 		resourcePoolRef: pool_ref.Reference(),
+		datastore:       datastore.Reference(),
 		vmSrc:           vm_src, //vmSrc,
 		ctx:             ctx,
 		vmName:          s.config.VMName,
@@ -154,14 +162,16 @@ func (s *StepCloneVM) Cleanup(state multistep.StateBag) {
 func cloneVM(params *CloneParameters, ui packer.Ui) (vm *object.VirtualMachine, err error) {
 	vm = nil
 	err = nil
-
+	//folder_ref := params.folder.Reference()
 
 
 	// Creating specs for cloning
 	ui.Say("Creating specs")
 	relocateSpec := types.VirtualMachineRelocateSpec{
+		//Folder: &(folder_ref),
 		Pool: &(params.resourcePoolRef),
-		Host: &(params.hostRef),
+		//Host: &(params.hostRef),
+		Datastore: &(params.datastore),
 	}
 
 	cloneSpec := types.VirtualMachineCloneSpec{
