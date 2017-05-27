@@ -26,6 +26,7 @@ type Config struct {
 	DCName       string `mapstructure:"dc_name"`
 	Host         string `mapstructure:"host"`
 	ResourcePool string `mapstructure:"resource_pool"`
+	Datastore    string `mapstructure:"datastore"`
 
 	// Hardware
 	Cpus            string `mapstructure:"cpus"`
@@ -85,6 +86,9 @@ func NewConfig(raws ...interface{}) (*Config, []string, error) {
 
 	// Warnings
 	var warnings []string
+	if c.Datastore == "" {
+		warnings = append(warnings, "Datastore is not specified, will try to find a default one")
+	}
 
 	if len(errs.Errors) > 0 {
 		return nil, warnings, errs
