@@ -13,12 +13,13 @@ import (
 )
 
 type CloneParameters struct {
-	client   *govmomi.Client
-	folder   *object.Folder
-	resourcePool types.ManagedObjectReference
-	vmSrc    *object.VirtualMachine
-	ctx      context.Context
-	vmName   string
+	client          *govmomi.Client
+	folder          *object.Folder
+	hostRef         types.ManagedObjectReference
+	resourcePoolRef types.ManagedObjectReference
+	vmSrc           *object.VirtualMachine
+	ctx             context.Context
+	vmName          string
 }
 
 type StepCloneVM struct{
@@ -58,12 +59,12 @@ func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 		ui.Say(fmt.Sprintf("Folder string: %v\nFolder path: %v\nFolder name: %v", folder.String(), folder.InventoryPath, folder.Name()))
 	}
 
-	vmSrc, err := finder.VirtualMachine(ctx, s.config.Template)
-	if err != nil {
-		ui.Say("error creating vmSrc")
-		state.Put("error", err)
-		return multistep.ActionHalt
-	}
+	//vmSrc, err := finder.VirtualMachine(ctx, s.config.Template)
+	//if err != nil {
+	//	ui.Say("error creating vmSrc")
+	//	state.Put("error", err)
+	//	return multistep.ActionHalt
+	//}
 
 	pool_ref, err := object.NewSearchIndex(client.Client).FindByInventoryPath(ctx, fmt.Sprintf("%v/host/%v/Resources/%v", dc.Name(), s.config.Host, s.config.ResourcePool))
 	if err != nil {
@@ -77,17 +78,39 @@ func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 		ui.Say(fmt.Sprintf("Cannot find resource pool %s", s.config.ResourcePool))
 		state.Put("error", err)
 		return multistep.ActionHalt
-
 	}
 
+	host, err := finder.HostSystemOrDefault(ctx, s.config.Host)
+	if err != nil {
+		ui.Say(fmt.Sprintf("Cannot find host %s", s.config.Host))
+		state.Put("error", err)
+		return multistep.ActionHalt
+	}
+
+	//datastore, err := finder.DatastoreOrDefault(ctx, )
+	vm_mor, err := 	object.NewSearchIndex(client.Client).FindByDatastorePath(ctx, dc, "[datastore1] ubuntu/ubuntu.vmtx")
+	//object.NewSearchIndex(client.Client).FindByInventoryPath(ctx, fmt.Sprintf(fmt.Sprintf("%s/vm/%s", dc.Name(), s.config.Template)))
+	if err != nil {
+		ui.Say(fmt.Sprintf("Failed to get vm by path; error: %v", err.Error()))
+		state.Put("error", err)
+		return multistep.ActionHalt
+	}
+	if vm_mor == nil {
+		ui.Say(fmt.Sprintf("Failed to find vm by path: %v", vm_mor))
+		state.Put("error", err)
+		return multistep.ActionHalt
+	}
+	vm_src := vm_mor.(*object.VirtualMachine)
+	ui.Say(fmt.Sprintf("Got vm by path: %v", vm_mor))
+
 	vm, err := cloneVM(&CloneParameters{
-		client:       client,
-		folder:       folder,
-		//host:         host.Reference(),
-		resourcePool: pool_ref.Reference(),
-		vmSrc:        vmSrc,
-		ctx:          ctx,
-		vmName:       s.config.VMName,
+		client:          client,
+		folder:          folder,
+		hostRef:         host.Reference(),
+		resourcePoolRef: pool_ref.Reference(),
+		vmSrc:           vm_src, //vmSrc,
+		ctx:             ctx,
+		vmName:          s.config.VMName,
 	}, ui)
 	if err != nil {
 		state.Put("error", err)
@@ -132,10 +155,13 @@ func cloneVM(params *CloneParameters, ui packer.Ui) (vm *object.VirtualMachine, 
 	vm = nil
 	err = nil
 
+
+
 	// Creating specs for cloning
 	ui.Say("Creating specs")
 	relocateSpec := types.VirtualMachineRelocateSpec{
-		Pool: &(params.resourcePool),
+		Pool: &(params.resourcePoolRef),
+		Host: &(params.hostRef),
 	}
 
 	cloneSpec := types.VirtualMachineCloneSpec{
@@ -147,12 +173,16 @@ func cloneVM(params *CloneParameters, ui packer.Ui) (vm *object.VirtualMachine, 
 	ui.Say("Cloning itself")
 	task, err := params.vmSrc.Clone(params.ctx, params.folder, params.vmName, cloneSpec)
 	if err != nil {
+		ui.Error(fmt.Sprintf("error from Clone(): %v", err.Error()))
 		return
 	}
+
+	ui.Say(fmt.Sprint("Task: %v", task))
 
 	ui.Say("Wait for result")
 	info, err := task.WaitForResult(params.ctx, nil)
 	if err != nil {
+		ui.Error(fmt.Sprintf("error from WaitForResult(): %v\ninfo: %v", err.Error(), info))
 		return
 	}
 
