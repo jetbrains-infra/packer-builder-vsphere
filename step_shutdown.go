@@ -12,7 +12,8 @@ import (
 )
 
 type StepShutdown struct{
-	Command string
+	Command    string
+	ToTemplate bool
 }
 
 func (s *StepShutdown) Run(state multistep.StateBag) multistep.StepAction {
@@ -69,6 +70,16 @@ func (s *StepShutdown) Run(state multistep.StateBag) multistep.StepAction {
 			return multistep.ActionHalt
 		}
 		_, err = task.WaitForResult(ctx, nil)
+		if err != nil {
+			state.Put("error", err)
+			return multistep.ActionHalt
+		}
+	}
+
+	// Turning into template if needed
+	if s.ToTemplate {
+		ui.Say("turning into template...")
+		err := vm.MarkAsTemplate(ctx)
 		if err != nil {
 			state.Put("error", err)
 			return multistep.ActionHalt

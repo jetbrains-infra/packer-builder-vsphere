@@ -28,6 +28,7 @@ type Config struct {
 	ResourcePool string `mapstructure:"resource_pool"`
 	Datastore    string `mapstructure:"datastore"`
 	LinkedClone  bool   `mapstructure:"linked_clone"`
+	ToTemplate   bool   `mapstructure:"to_template"`
 
 	// Hardware
 	Cpus            string `mapstructure:"cpus"`
