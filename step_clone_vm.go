@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"net/url"
 	"github.com/vmware/govmomi/vim25/mo"
-	"errors"
 )
 
 type CloneParameters struct {
@@ -153,16 +152,29 @@ func cloneVM(params *CloneParameters) (vm *object.VirtualMachine, err error) {
 	}
 	if params.linkedClone == true {
 		var vmImage mo.VirtualMachine
-		err = params.vmSrc.Properties(params.ctx, params.vmSrc.Reference(), []string{"snapshot"}, &vmImage)
+		err = params.vmSrc.Properties(params.ctx, params.vmSrc.Reference(), []string{"snapshot", "summary.config.template"}, &vmImage)
 		if err != nil {
 			err = fmt.Errorf("Error reading base VM properties: %s", err)
 			return
 		}
-		if vmImage.Snapshot == nil {
-			err = errors.New("`linked_clone=true`, but image VM has no snapshots")
-			return
+		// TODO: is that actually true that template does not need a snapshot?
+		if vmImage.Snapshot == nil && vmImage.Summary.Config.Template == false {
+			// If no snapshots are available, create one
+			var task *object.Task
+			task, err = params.vmSrc.CreateSnapshot(params.ctx, params.vmName, "", true, true)
+			if err != nil {
+				return
+			}
+			var info *types.TaskInfo
+			info, err = task.WaitForResult(params.ctx, nil)
+			if err != nil {
+				return
+			}
+			snapshot := info.Result.(types.ManagedObjectReference)
+			cloneSpec.Snapshot = &snapshot
+		} else {
+			cloneSpec.Snapshot = vmImage.Snapshot.CurrentSnapshot
 		}
-		cloneSpec.Snapshot = vmImage.Snapshot.CurrentSnapshot
 	}
 
 	// Cloning itself
