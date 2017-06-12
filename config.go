@@ -102,7 +102,7 @@ func NewConfig(raws ...interface{}) (*Config, []string, error) {
 	// Warnings
 	var warnings []string
 	if c.Datastore == "" {
-		warnings = append(warnings, "Datastore is not specified, will try to find a default one")
+		warnings = append(warnings, "Datastore is not specified, will try to find the default one")
 	}
 
 	if len(errs.Errors) > 0 {
