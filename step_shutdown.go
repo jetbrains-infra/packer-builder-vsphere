@@ -10,11 +10,11 @@ import (
 	"time"
 	"bytes"
 	"errors"
+	"github.com/vmware/govmomi/vim25/mo"
 )
 
 type StepShutdown struct{
 	Command    string
-	ToTemplate bool
 	ShutdownTimeout time.Duration
 }
 
@@ -74,30 +74,41 @@ func (s *StepShutdown) Run(state multistep.StateBag) multistep.StepAction {
 
 		err := vm.ShutdownGuest(ctx)
 		if err != nil {
-			state.Put("error", err)
+			state.Put("error", fmt.Errorf("Could not shutdown guest: %v", err))
 			return multistep.ActionHalt
 		}
 
-		task, err := vm.PowerOff(ctx)
-		if err != nil {
-			state.Put("error", err)
-			return multistep.ActionHalt
-		}
-		_, err = task.WaitForResult(ctx, nil)
-		if err != nil {
-			state.Put("error", err)
-			return multistep.ActionHalt
-		}
-	}
+		// Wait for the guest to actually shut down
+		log.Printf("Waiting max %s for guest shutdown to complete", s.ShutdownTimeout)
+		shutdownTimer := time.After(s.ShutdownTimeout)
+		var vmImage mo.VirtualMachine
+		for {
+			err = vm.Properties(ctx, vm.Reference(), []string{"guest.guestState"}, &vmImage)
+			if err != nil {
+				state.Put("error", fmt.Errorf("Could not obtain properties: %v", err))
+				return multistep.ActionHalt
+			}
+			if vmImage.Guest.GuestState == "notRunning" {
+				break
+			}
 
-	// Turning into template if needed
-	if s.ToTemplate {
-		ui.Say("turning into template...")
-		err := vm.MarkAsTemplate(ctx)
+			select {
+			case <-shutdownTimer:
+				err := errors.New("Timeout while waiting for machine to shut down.")
+				state.Put("error", err)
+				ui.Error(err.Error())
+				return multistep.ActionHalt
+			default:
+				time.Sleep(150 * time.Millisecond)
+			}
+		}
+
+		powerState, err := vm.PowerState(ctx)
 		if err != nil {
 			state.Put("error", err)
 			return multistep.ActionHalt
 		}
+		log.Printf("Power state after guest shutdown: %v\n", powerState)
 	}
 
 	ui.Say("VM stopped")
