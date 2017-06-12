@@ -64,6 +64,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 		&StepShutdown{
 			Command:    b.config.ShutdownCommand,
 			ToTemplate: b.config.ToTemplate,
+			ShutdownTimeout: b.config.ShutdownTimeout,
 		},
 	}
 
