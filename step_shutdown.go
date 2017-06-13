@@ -43,32 +43,6 @@ func (s *StepShutdown) Run(state multistep.StateBag) multistep.StepAction {
 			ui.Error(err.Error())
 			return multistep.ActionHalt
 		}
-
-		// Wait for the machine to actually shut down
-		log.Printf("Waiting max %s for shutdown to complete", s.ShutdownTimeout)
-		shutdownTimer := time.After(s.ShutdownTimeout)
-		for {
-			powerState, err := vm.PowerState(ctx)
-			if err != nil {
-				state.Put("error", err)
-				return multistep.ActionHalt
-			}
-			if powerState == "poweredOff" {
-				break
-			}
-
-			select {
-			case <-shutdownTimer:
-				log.Printf("Shutdown stdout: %s", stdout.String())
-				log.Printf("Shutdown stderr: %s", stderr.String())
-				err := errors.New("Timeout while waiting for machine to shut down.")
-				state.Put("error", err)
-				ui.Error(err.Error())
-				return multistep.ActionHalt
-			default:
-				time.Sleep(150 * time.Millisecond)
-			}
-		}
 	} else {
 		ui.Say("Forcibly halting virtual machine...")
 
@@ -102,13 +76,30 @@ func (s *StepShutdown) Run(state multistep.StateBag) multistep.StepAction {
 				time.Sleep(150 * time.Millisecond)
 			}
 		}
+	}
 
+	// Wait for the machine to actually shut down
+	log.Printf("Waiting max %s for shutdown to complete", s.ShutdownTimeout)
+	shutdownTimer := time.After(s.ShutdownTimeout)
+	for {
 		powerState, err := vm.PowerState(ctx)
 		if err != nil {
 			state.Put("error", err)
 			return multistep.ActionHalt
 		}
-		log.Printf("Power state after guest shutdown: %v\n", powerState)
+		if powerState == "poweredOff" {
+			break
+		}
+
+		select {
+		case <-shutdownTimer:
+			err := errors.New("Timeout while waiting for machine to shut down.")
+			state.Put("error", err)
+			ui.Error(err.Error())
+			return multistep.ActionHalt
+		default:
+			time.Sleep(150 * time.Millisecond)
+		}
 	}
 
 	ui.Say("VM stopped")
