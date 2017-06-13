@@ -10,7 +10,6 @@ import (
 	"time"
 	"bytes"
 	"errors"
-	"github.com/vmware/govmomi/vim25/mo"
 )
 
 type StepShutdown struct{
@@ -50,31 +49,6 @@ func (s *StepShutdown) Run(state multistep.StateBag) multistep.StepAction {
 		if err != nil {
 			state.Put("error", fmt.Errorf("Could not shutdown guest: %v", err))
 			return multistep.ActionHalt
-		}
-
-		// Wait for the guest to actually shut down
-		log.Printf("Waiting max %s for guest shutdown to complete", s.ShutdownTimeout)
-		shutdownTimer := time.After(s.ShutdownTimeout)
-		var vmImage mo.VirtualMachine
-		for {
-			err = vm.Properties(ctx, vm.Reference(), []string{"guest.guestState"}, &vmImage)
-			if err != nil {
-				state.Put("error", fmt.Errorf("Could not obtain properties: %v", err))
-				return multistep.ActionHalt
-			}
-			if vmImage.Guest.GuestState == "notRunning" {
-				break
-			}
-
-			select {
-			case <-shutdownTimer:
-				err := errors.New("Timeout while waiting for machine to shut down.")
-				state.Put("error", err)
-				ui.Error(err.Error())
-				return multistep.ActionHalt
-			default:
-				time.Sleep(150 * time.Millisecond)
-			}
 		}
 	}
 
