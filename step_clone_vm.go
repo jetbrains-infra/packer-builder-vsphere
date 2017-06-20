@@ -97,6 +97,7 @@ func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 	}
 
 	state.Put("vm", vm)
+	state.Put("vmSrc", vmSrc)
 	state.Put("ctx", ctx)
 	s.success = true
 	return multistep.ActionContinue
