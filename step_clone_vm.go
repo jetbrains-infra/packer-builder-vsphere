@@ -31,24 +31,14 @@ type StepCloneVM struct{
 }
 
 func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
+	client := state.Get("client").(*govmomi.Client)
+	ctx := state.Get("ctx").(context.Context)
+	finder := state.Get("finder").(*find.Finder)
+	dc := state.Get("dc").(*object.Datacenter)
+	vmSrc := state.Get("vmSrc").(*object.VirtualMachine)
+
 	ui := state.Get("ui").(packer.Ui)
 	ui.Say("start cloning...")
-
-	// Prepare entities: client (authentification), finder, folder, virtual machine
-	client, ctx, err := createClient(s.config.Url, s.config.Username, s.config.Password)
-	if err != nil {
-		state.Put("error", err)
-		return multistep.ActionHalt
-	}
-
-	// Set up finder
-	finder := find.NewFinder(client.Client, false)
-	dc, err := finder.DatacenterOrDefault(ctx, s.config.DCName)
-	if err != nil {
-		state.Put("error", err)
-		return multistep.ActionHalt
-	}
-	finder.SetDatacenter(dc)
 
 	// Get folder
 	folder, err := finder.FolderOrDefault(ctx, s.config.FolderName)
@@ -72,13 +62,6 @@ func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 			state.Put("error", err)
 			return multistep.ActionHalt
 		}
-	}
-
-	// Get source VM
-	vmSrc, err := finder.VirtualMachine(ctx, s.config.Template)
-	if err != nil {
-		state.Put("error", err)
-		return multistep.ActionHalt
 	}
 
 	vm, err := cloneVM(&CloneParameters{

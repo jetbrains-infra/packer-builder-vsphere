@@ -3,8 +3,6 @@ package main
 import (
 	"github.com/mitchellh/multistep"
 	"github.com/hashicorp/packer/packer"
-	"fmt"
-	"github.com/vmware/govmomi/vim25/mo"
 	"context"
 	"github.com/vmware/govmomi/object"
 )
@@ -27,13 +25,6 @@ func (s *StepCreateSnapshot) Run(state multistep.StateBag) multistep.StepAction 
 			state.Put("error", err)
 			return multistep.ActionHalt
 		}
-		//var info *types.TaskInfo
-		//info, err = task.WaitForResult(ctx, nil)
-		//if err != nil {
-		//	state.Put("error", err)
-		//	return multistep.ActionHalt
-		//}
-		//snapshot := info.Result.(types.ManagedObjectReference)
 		ui.Say("done")
 	}
 
