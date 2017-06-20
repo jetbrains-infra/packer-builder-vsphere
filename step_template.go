@@ -8,7 +8,7 @@ import (
 )
 
 type StepPostProcess struct{
-	ToTemplate bool
+	ConvertToTemplate bool
 }
 
 func (s *StepPostProcess) Run(state multistep.StateBag) multistep.StepAction {
@@ -17,7 +17,7 @@ func (s *StepPostProcess) Run(state multistep.StateBag) multistep.StepAction {
 	ctx := state.Get("ctx").(context.Context)
 
 	// Turning into template if needed
-	if s.ToTemplate {
+	if s.ConvertToTemplate {
 		ui.Say("turning into template...")
 		err := vm.MarkAsTemplate(ctx)
 		if err != nil {
