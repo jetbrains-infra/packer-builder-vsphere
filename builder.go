@@ -41,10 +41,6 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 		&StepCloneVM{
 			config: b.config,
 		},
-		&StepCreateSnapshot{
-			createSnapshot: b.config.CreateSnapshot,
-			vmName: b.config.VMName,
-		},
 		&StepConfigureHW{
 			config: b.config,
 		},
@@ -72,7 +68,10 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			Command:    b.config.ShutdownCommand,
 			ShutdownTimeout: b.config.ShutdownTimeout,
 		},
-		&StepPostProcess{
+		&StepCreateSnapshot{
+			createSnapshot: b.config.CreateSnapshot,
+		},
+		&StepConvertToTemplate{
 			ConvertToTemplate: b.config.ConvertToTemplate,
 		},
 	}

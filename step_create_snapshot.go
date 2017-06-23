@@ -9,18 +9,17 @@ import (
 
 type StepCreateSnapshot struct{
 	createSnapshot bool
-	vmName         string
 }
 
 func (s *StepCreateSnapshot) Run(state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
-	vmSrc := state.Get("vmSrc").(*object.VirtualMachine)
+	vm := state.Get("vm").(*object.VirtualMachine)
 	ctx := state.Get("ctx").(context.Context)
 
 	if s.createSnapshot {
 		ui.Say("creating snapshot...")
 
-		_, err := vmSrc.CreateSnapshot(ctx, s.vmName, "", true, true)
+		_, err := vm.CreateSnapshot(ctx, "packer_snapshot", "", true, true)
 		if err != nil {
 			state.Put("error", err)
 			return multistep.ActionHalt

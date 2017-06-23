@@ -7,11 +7,11 @@ import (
 	"context"
 )
 
-type StepPostProcess struct{
+type StepConvertToTemplate struct{
 	ConvertToTemplate bool
 }
 
-func (s *StepPostProcess) Run(state multistep.StateBag) multistep.StepAction {
+func (s *StepConvertToTemplate) Run(state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	vm := state.Get("vm").(*object.VirtualMachine)
 	ctx := state.Get("ctx").(context.Context)
@@ -30,4 +30,4 @@ func (s *StepPostProcess) Run(state multistep.StateBag) multistep.StepAction {
 	return multistep.ActionContinue
 }
 
-func (s *StepPostProcess) Cleanup(state multistep.StateBag) {}
+func (s *StepConvertToTemplate) Cleanup(state multistep.StateBag) {}
