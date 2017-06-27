@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/packer/packer"
 	"github.com/vmware/govmomi/find"
 	"fmt"
-	"net/url"
 	"github.com/vmware/govmomi/vim25/mo"
 	"errors"
 )
@@ -161,25 +160,4 @@ func cloneVM(params *CloneParameters) (vm *object.VirtualMachine, err error) {
 
 	vm = object.NewVirtualMachine(params.client.Client, info.Result.(types.ManagedObjectReference))
 	return vm, nil
-}
-
-func createClient(URL, username, password string) (*govmomi.Client, context.Context, error) {
-	// create context
-	ctx := context.TODO() // an empty, default context (for those, who is unsure)
-
-	// create a client
-	// (connected to the specified URL,
-	// logged in with the username-password)
-	u, err := url.Parse(URL) // create a URL object from string
-	if err != nil {
-		return nil, nil, err
-	}
-	u.User = url.UserPassword(username, password) // set username and password for automatical authentification
-	fmt.Println(u.String())
-	client, err := govmomi.NewClient(ctx, u,true) // creating a client (logs in with given uname&pswd)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return client, ctx, nil
 }
