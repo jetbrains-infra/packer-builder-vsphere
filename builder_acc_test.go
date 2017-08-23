@@ -5,7 +5,6 @@ import (
 	builderT "github.com/hashicorp/packer/helper/builder/testing"
 	"fmt"
 	"github.com/hashicorp/packer/packer"
-	"github.com/vmware/govmomi/vim25/mo"
 	"encoding/json"
 	"math/rand"
 	"github.com/vmware/govmomi/object"
@@ -76,13 +75,13 @@ func checkDefault(t *testing.T, name string, host string) builderT.TestCheckFunc
 			t.Errorf("Invalid host name: expected '%v', got '%v'", host, hostInfo.Name)
 		}
 
-		var rpInfo = mo.ResourcePool{}
-		err = vm.Properties(conn.Ctx, vmInfo.ResourcePool.Reference(), []string{"owner", "parent"}, &rpInfo)
+		p := conn.NewResourcePool(vmInfo.ResourcePool)
+		poolInfo, err := conn.ResourcePoolInfo(p, "owner", "parent")
 		if err != nil {
 			t.Fatalf("Cannot read resource pool properties: %v", err)
 		}
 
-		if rpInfo.Owner != *rpInfo.Parent {
+		if poolInfo.Owner != *poolInfo.Parent {
 			t.Error("Not a root resource pool")
 		}
 
