@@ -66,8 +66,8 @@ func checkDefault(t *testing.T, name string, host string) builderT.TestCheckFunc
 			t.Errorf("Invalid VM name: expected '%v', got '%v'", name, vmInfo.Name)
 		}
 
-		var hostInfo mo.HostSystem
-		err = vm.Properties(conn.Ctx, vmInfo.Runtime.Host.Reference(), []string{"name"}, &hostInfo)
+		h := conn.NewHost(vmInfo.Runtime.Host)
+		hostInfo, err := conn.HostInfo(h, "name")
 		if err != nil {
 			t.Fatal("Cannot read VM properties: ", err)
 		}
