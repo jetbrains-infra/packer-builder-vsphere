@@ -19,7 +19,7 @@ import (
 type Driver struct {
 	Ctx        context.Context
 	client     *govmomi.Client
-	Finder     *find.Finder
+	finder     *find.Finder
 	datacenter *object.Datacenter
 }
 
@@ -88,25 +88,25 @@ func NewDriver(config *ConnectConfig) (*Driver, error) {
 		Ctx:        ctx,
 		client:     client,
 		datacenter: datacenter,
-		Finder:     finder,
+		finder:     finder,
 	}
 	return &d, nil
 }
 
 func (d *Driver) CloneVM(config *CloneConfig) (*object.VirtualMachine, error) {
-	template, err := d.Finder.VirtualMachine(d.Ctx, config.Template)
+	template, err := d.finder.VirtualMachine(d.Ctx, config.Template)
 	if err != nil {
 		return nil, err
 	}
 
-	folder, err := d.Finder.FolderOrDefault(d.Ctx, fmt.Sprintf("/%v/vm/%v", d.datacenter.Name(), config.Folder))
+	folder, err := d.finder.FolderOrDefault(d.Ctx, fmt.Sprintf("/%v/vm/%v", d.datacenter.Name(), config.Folder))
 	if err != nil {
 		return nil, err
 	}
 
 	var relocateSpec types.VirtualMachineRelocateSpec
 
-	pool, err := d.Finder.ResourcePoolOrDefault(d.Ctx, fmt.Sprintf("/%v/host/%v/Resources/%v", d.datacenter.Name(), config.Host, config.ResourcePool))
+	pool, err := d.finder.ResourcePoolOrDefault(d.Ctx, fmt.Sprintf("/%v/host/%v/Resources/%v", d.datacenter.Name(), config.Host, config.ResourcePool))
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ func (d *Driver) CloneVM(config *CloneConfig) (*object.VirtualMachine, error) {
 	relocateSpec.Pool = &poolRef
 
 	if config.Datastore != "" {
-		datastore, err := d.Finder.Datastore(d.Ctx, config.Datastore)
+		datastore, err := d.finder.Datastore(d.Ctx, config.Datastore)
 		if err != nil {
 			return nil, err
 		}

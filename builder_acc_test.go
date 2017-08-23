@@ -52,7 +52,7 @@ func checkDefault(t *testing.T, name string, host string) builderT.TestCheckFunc
 
 		conn := testConn(t)
 
-		vm, err := conn.Finder.VirtualMachine(conn.Ctx, artifact.Name)
+		vm, err := conn.FindVM(artifact.Name)
 		if err != nil {
 			t.Fatal("Cannot find VM: ", err)
 		}
@@ -116,7 +116,7 @@ func checkLinkedClone(t *testing.T) builderT.TestCheckFunc {
 
 		conn := testConn(t)
 
-		vm, err := conn.Finder.VirtualMachine(conn.Ctx, artifact.Name)
+		vm, err := conn.FindVM(artifact.Name)
 		if err != nil {
 			t.Fatalf("Cannot find VM: %v", err)
 		}
@@ -202,7 +202,7 @@ func getVM(t *testing.T, d *driver.Driver, artifacts []packer.Artifact) *object.
 	artifactRaw := artifacts[0]
 	artifact, _ := artifactRaw.(*Artifact)
 
-	vm, err := d.Finder.VirtualMachine(d.Ctx, artifact.Name)
+	vm, err := d.FindVM(artifact.Name)
 	if err != nil {
 		t.Fatalf("Cannot find VM: %v", err)
 	}
