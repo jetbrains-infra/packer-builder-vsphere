@@ -57,8 +57,7 @@ func checkDefault(t *testing.T, name string, host string) builderT.TestCheckFunc
 			t.Fatal("Cannot find VM: ", err)
 		}
 
-		var vmInfo mo.VirtualMachine
-		err = vm.Properties(conn.Ctx, vm.Reference(), []string{"name", "runtime.host", "resourcePool", "layoutEx.disk"}, &vmInfo)
+		vmInfo, err := conn.VMInfo(vm, "name", "runtime.host", "resourcePool", "layoutEx.disk")
 		if err != nil {
 			t.Fatalf("Cannot read VM properties: %v", err)
 		}
@@ -121,8 +120,7 @@ func checkLinkedClone(t *testing.T) builderT.TestCheckFunc {
 			t.Fatalf("Cannot find VM: %v", err)
 		}
 
-		var vmInfo mo.VirtualMachine
-		err = vm.Properties(conn.Ctx, vm.Reference(), []string{"layoutEx.disk"}, &vmInfo)
+		vmInfo, err := conn.VMInfo(vm, "layoutEx.disk")
 		if err != nil {
 			t.Fatalf("Cannot read VM properties: %v", err)
 		}
@@ -155,8 +153,7 @@ func checkTemplate(t *testing.T) builderT.TestCheckFunc {
 		d := testConn(t)
 
 		vm := getVM(t, d, artifacts)
-		var vmInfo mo.VirtualMachine
-		err := vm.Properties(d.Ctx, vm.Reference(), []string{"config.template"}, &vmInfo)
+		vmInfo, err := d.VMInfo(vm, "config.template")
 		if err != nil {
 			t.Fatalf("Cannot read VM properties: %v", err)
 		}
