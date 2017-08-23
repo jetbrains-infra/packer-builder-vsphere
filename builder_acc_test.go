@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"math/rand"
 	"github.com/vmware/govmomi/object"
+	"github.com/jetbrains-infra/packer-builder-vsphere/driver"
 )
 
 func TestBuilderAcc_default(t *testing.T) {
@@ -51,13 +52,13 @@ func checkDefault(t *testing.T, name string, host string) builderT.TestCheckFunc
 
 		conn := testConn(t)
 
-		vm, err := conn.finder.VirtualMachine(conn.ctx, artifact.Name)
+		vm, err := conn.Finder.VirtualMachine(conn.Ctx, artifact.Name)
 		if err != nil {
 			t.Fatal("Cannot find VM: ", err)
 		}
 
 		var vmInfo mo.VirtualMachine
-		err = vm.Properties(conn.ctx, vm.Reference(), []string{"name", "runtime.host", "resourcePool", "layoutEx.disk"}, &vmInfo)
+		err = vm.Properties(conn.Ctx, vm.Reference(), []string{"name", "runtime.host", "resourcePool", "layoutEx.disk"}, &vmInfo)
 		if err != nil {
 			t.Fatalf("Cannot read VM properties: %v", err)
 		}
@@ -67,7 +68,7 @@ func checkDefault(t *testing.T, name string, host string) builderT.TestCheckFunc
 		}
 
 		var hostInfo mo.HostSystem
-		err = vm.Properties(conn.ctx, vmInfo.Runtime.Host.Reference(), []string{"name"}, &hostInfo)
+		err = vm.Properties(conn.Ctx, vmInfo.Runtime.Host.Reference(), []string{"name"}, &hostInfo)
 		if err != nil {
 			t.Fatal("Cannot read VM properties: ", err)
 		}
@@ -77,7 +78,7 @@ func checkDefault(t *testing.T, name string, host string) builderT.TestCheckFunc
 		}
 
 		var rpInfo = mo.ResourcePool{}
-		err = vm.Properties(conn.ctx, vmInfo.ResourcePool.Reference(), []string{"owner", "parent"}, &rpInfo)
+		err = vm.Properties(conn.Ctx, vmInfo.ResourcePool.Reference(), []string{"owner", "parent"}, &rpInfo)
 		if err != nil {
 			t.Fatalf("Cannot read resource pool properties: %v", err)
 		}
@@ -115,13 +116,13 @@ func checkLinkedClone(t *testing.T) builderT.TestCheckFunc {
 
 		conn := testConn(t)
 
-		vm, err := conn.finder.VirtualMachine(conn.ctx, artifact.Name)
+		vm, err := conn.Finder.VirtualMachine(conn.Ctx, artifact.Name)
 		if err != nil {
 			t.Fatalf("Cannot find VM: %v", err)
 		}
 
 		var vmInfo mo.VirtualMachine
-		err = vm.Properties(conn.ctx, vm.Reference(), []string{"layoutEx.disk"}, &vmInfo)
+		err = vm.Properties(conn.Ctx, vm.Reference(), []string{"layoutEx.disk"}, &vmInfo)
 		if err != nil {
 			t.Fatalf("Cannot read VM properties: %v", err)
 		}
@@ -155,7 +156,7 @@ func checkTemplate(t *testing.T) builderT.TestCheckFunc {
 
 		vm := getVM(t, d, artifacts)
 		var vmInfo mo.VirtualMachine
-		err := vm.Properties(d.ctx, vm.Reference(), []string{"config.template"}, &vmInfo)
+		err := vm.Properties(d.Ctx, vm.Reference(), []string{"config.template"}, &vmInfo)
 		if err != nil {
 			t.Fatalf("Cannot read VM properties: %v", err)
 		}
@@ -184,26 +185,24 @@ func renderConfig(config map[string]interface{}) string {
 	return string(j)
 }
 
-func testConn(t *testing.T) *Driver {
-	config := &ConnectConfig{
+func testConn(t *testing.T) *driver.Driver {
+	d, err := driver.NewDriver(&driver.ConnectConfig{
 		VCenterServer:      "vcenter.vsphere55.test",
 		Username:           "root",
 		Password:           "jetbrains",
 		InsecureConnection: true,
-	}
-
-	d, err := NewDriver(config)
+	})
 	if err != nil {
 		t.Fatal("Cannot connect: ", err)
 	}
 	return d
 }
 
-func getVM(t *testing.T, d *Driver, artifacts []packer.Artifact) *object.VirtualMachine {
+func getVM(t *testing.T, d *driver.Driver, artifacts []packer.Artifact) *object.VirtualMachine {
 	artifactRaw := artifacts[0]
 	artifact, _ := artifactRaw.(*Artifact)
 
-	vm, err := d.finder.VirtualMachine(d.ctx, artifact.Name)
+	vm, err := d.Finder.VirtualMachine(d.Ctx, artifact.Name)
 	if err != nil {
 		t.Fatalf("Cannot find VM: %v", err)
 	}

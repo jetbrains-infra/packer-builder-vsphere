@@ -1,4 +1,4 @@
-package main
+package driver
 
 import (
 	"github.com/vmware/govmomi"
@@ -17,10 +17,37 @@ import (
 )
 
 type Driver struct {
-	ctx        context.Context
+	Ctx        context.Context
 	client     *govmomi.Client
-	finder     *find.Finder
+	Finder     *find.Finder
 	datacenter *object.Datacenter
+}
+
+type ConnectConfig struct {
+	VCenterServer      string
+	Username           string
+	Password           string
+	InsecureConnection bool
+	Datacenter         string
+}
+
+type CloneConfig struct {
+	Template     string
+	VMName       string
+	Folder       string
+	Host         string
+	ResourcePool string
+	Datastore    string
+	LinkedClone  bool
+}
+
+type HardwareConfig struct {
+	CPUs           int32
+	CPUReservation int64
+	CPULimit       int64
+	RAM            int64
+	RAMReservation int64
+	RAMReserveAll  bool
 }
 
 func NewDriver(config *ConnectConfig) (*Driver, error) {
@@ -58,28 +85,28 @@ func NewDriver(config *ConnectConfig) (*Driver, error) {
 	finder.SetDatacenter(datacenter)
 
 	d := Driver{
-		ctx:        ctx,
+		Ctx:        ctx,
 		client:     client,
 		datacenter: datacenter,
-		finder:     finder,
+		Finder:     finder,
 	}
 	return &d, nil
 }
 
 func (d *Driver) CloneVM(config *CloneConfig) (*object.VirtualMachine, error) {
-	template, err := d.finder.VirtualMachine(d.ctx, config.Template)
+	template, err := d.Finder.VirtualMachine(d.Ctx, config.Template)
 	if err != nil {
 		return nil, err
 	}
 
-	folder, err := d.finder.FolderOrDefault(d.ctx, fmt.Sprintf("/%v/vm/%v", d.datacenter.Name(), config.Folder))
+	folder, err := d.Finder.FolderOrDefault(d.Ctx, fmt.Sprintf("/%v/vm/%v", d.datacenter.Name(), config.Folder))
 	if err != nil {
 		return nil, err
 	}
 
 	var relocateSpec types.VirtualMachineRelocateSpec
 
-	pool, err := d.finder.ResourcePoolOrDefault(d.ctx, fmt.Sprintf("/%v/host/%v/Resources/%v", d.datacenter.Name(), config.Host, config.ResourcePool))
+	pool, err := d.Finder.ResourcePoolOrDefault(d.Ctx, fmt.Sprintf("/%v/host/%v/Resources/%v", d.datacenter.Name(), config.Host, config.ResourcePool))
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +114,7 @@ func (d *Driver) CloneVM(config *CloneConfig) (*object.VirtualMachine, error) {
 	relocateSpec.Pool = &poolRef
 
 	if config.Datastore != "" {
-		datastore, err := d.finder.Datastore(d.ctx, config.Datastore)
+		datastore, err := d.Finder.Datastore(d.Ctx, config.Datastore)
 		if err != nil {
 			return nil, err
 		}
@@ -103,7 +130,7 @@ func (d *Driver) CloneVM(config *CloneConfig) (*object.VirtualMachine, error) {
 		cloneSpec.Location.DiskMoveType = "createNewChildDiskBacking"
 
 		var tpl mo.VirtualMachine
-		err = template.Properties(d.ctx, template.Reference(), []string{"snapshot"}, &tpl)
+		err = template.Properties(d.Ctx, template.Reference(), []string{"snapshot"}, &tpl)
 		if err != nil {
 			return nil, err
 		}
@@ -114,12 +141,12 @@ func (d *Driver) CloneVM(config *CloneConfig) (*object.VirtualMachine, error) {
 		cloneSpec.Snapshot = tpl.Snapshot.CurrentSnapshot
 	}
 
-	task, err := template.Clone(d.ctx, folder, config.VMName, cloneSpec)
+	task, err := template.Clone(d.Ctx, folder, config.VMName, cloneSpec)
 	if err != nil {
 		return nil, err
 	}
 
-	info, err := task.WaitForResult(d.ctx, nil)
+	info, err := task.WaitForResult(d.Ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -129,11 +156,11 @@ func (d *Driver) CloneVM(config *CloneConfig) (*object.VirtualMachine, error) {
 }
 
 func (d *Driver) DestroyVM(vm *object.VirtualMachine) error {
-	task, err := vm.Destroy(d.ctx)
+	task, err := vm.Destroy(d.Ctx)
 	if err != nil {
 		return err
 	}
-	_, err = task.WaitForResult(d.ctx, nil)
+	_, err = task.WaitForResult(d.Ctx, nil)
 	return err
 }
 
@@ -153,25 +180,25 @@ func (d *Driver) ConfigureVM(vm *object.VirtualMachine, config *HardwareConfig) 
 
 	confSpec.MemoryReservationLockedToMax = &config.RAMReserveAll
 
-	task, err := vm.Reconfigure(d.ctx, confSpec)
+	task, err := vm.Reconfigure(d.Ctx, confSpec)
 	if err != nil {
 		return err
 	}
-	_, err = task.WaitForResult(d.ctx, nil)
+	_, err = task.WaitForResult(d.Ctx, nil)
 	return err
 }
 
 func (d *Driver) PowerOn(vm *object.VirtualMachine) error {
-	task, err := vm.PowerOn(d.ctx)
+	task, err := vm.PowerOn(d.Ctx)
 	if err != nil {
 		return err
 	}
-	_, err = task.WaitForResult(d.ctx, nil)
+	_, err = task.WaitForResult(d.Ctx, nil)
 	return err
 }
 
 func (d *Driver) WaitForIP(vm *object.VirtualMachine) (string, error) {
-	ip, err := vm.WaitForIP(d.ctx)
+	ip, err := vm.WaitForIP(d.Ctx)
 	if err != nil {
 		return "", err
 	}
@@ -179,7 +206,7 @@ func (d *Driver) WaitForIP(vm *object.VirtualMachine) (string, error) {
 }
 
 func (d *Driver) PowerOff(vm *object.VirtualMachine) error {
-	state, err := vm.PowerState(d.ctx)
+	state, err := vm.PowerState(d.Ctx)
 	if err != nil {
 		return err
 	}
@@ -188,23 +215,23 @@ func (d *Driver) PowerOff(vm *object.VirtualMachine) error {
 		return nil
 	}
 
-	task, err := vm.PowerOff(d.ctx)
+	task, err := vm.PowerOff(d.Ctx)
 	if err != nil {
 		return err
 	}
-	_, err = task.WaitForResult(d.ctx, nil)
+	_, err = task.WaitForResult(d.Ctx, nil)
 	return err
 }
 
 func (d *Driver) StartShutdown(vm *object.VirtualMachine) error {
-	err := vm.ShutdownGuest(d.ctx)
+	err := vm.ShutdownGuest(d.Ctx)
 	return err
 }
 
 func (d *Driver) WaitForShutdown(vm *object.VirtualMachine, timeout time.Duration) error {
 	shutdownTimer := time.After(timeout)
 	for {
-		powerState, err := vm.PowerState(d.ctx)
+		powerState, err := vm.PowerState(d.Ctx)
 		if err != nil {
 			return err
 		}
@@ -224,15 +251,15 @@ func (d *Driver) WaitForShutdown(vm *object.VirtualMachine, timeout time.Duratio
 }
 
 func (d *Driver) CreateSnapshot(vm *object.VirtualMachine) error {
-	task, err := vm.CreateSnapshot(d.ctx, "Created by Packer", "", false, false)
+	task, err := vm.CreateSnapshot(d.Ctx, "Created by Packer", "", false, false)
 	if err != nil {
 		return err
 	}
-	_, err = task.WaitForResult(d.ctx, nil)
+	_, err = task.WaitForResult(d.Ctx, nil)
 	return err
 }
 
 func (d *Driver) ConvertToTemplate(vm *object.VirtualMachine) error {
-	err := vm.MarkAsTemplate(d.ctx)
+	err := vm.MarkAsTemplate(d.Ctx)
 	return err
 }
