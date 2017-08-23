@@ -18,7 +18,7 @@ func (d *Driver) ResourcePoolInfo(host *object.ResourcePool, params ...string) (
 		p = params
 	}
 	var poolInfo mo.ResourcePool
-	err := host.Properties(d.Ctx, host.Reference(), p, &poolInfo)
+	err := host.Properties(d.ctx, host.Reference(), p, &poolInfo)
 	if err != nil {
 		return nil, err
 	}

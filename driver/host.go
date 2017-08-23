@@ -18,7 +18,7 @@ func (d *Driver) HostInfo(host *object.HostSystem, params ...string) (*mo.HostSy
 		p = params
 	}
 	var hostInfo mo.HostSystem
-	err := host.Properties(d.Ctx, host.Reference(), p, &hostInfo)
+	err := host.Properties(d.ctx, host.Reference(), p, &hostInfo)
 	if err != nil {
 		return nil, err
 	}

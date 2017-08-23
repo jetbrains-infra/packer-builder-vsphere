@@ -6,7 +6,7 @@ import (
 )
 
 func (d *Driver) FindVM(name string) (*object.VirtualMachine, error) {
-	return d.finder.VirtualMachine(d.Ctx, name)
+	return d.finder.VirtualMachine(d.ctx, name)
 }
 
 func (d *Driver) VMInfo(vm *object.VirtualMachine, params ...string) (*mo.VirtualMachine, error){
@@ -17,7 +17,7 @@ func (d *Driver) VMInfo(vm *object.VirtualMachine, params ...string) (*mo.Virtua
 		p = params
 	}
 	var vmInfo mo.VirtualMachine
-	err := vm.Properties(d.Ctx, vm.Reference(), p, &vmInfo)
+	err := vm.Properties(d.ctx, vm.Reference(), p, &vmInfo)
 	if err != nil {
 		return nil, err
 	}

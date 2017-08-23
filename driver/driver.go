@@ -17,7 +17,7 @@ import (
 )
 
 type Driver struct {
-	Ctx        context.Context
+	ctx        context.Context
 	client     *govmomi.Client
 	finder     *find.Finder
 	datacenter *object.Datacenter
@@ -85,7 +85,7 @@ func NewDriver(config *ConnectConfig) (*Driver, error) {
 	finder.SetDatacenter(datacenter)
 
 	d := Driver{
-		Ctx:        ctx,
+		ctx:        ctx,
 		client:     client,
 		datacenter: datacenter,
 		finder:     finder,
@@ -94,19 +94,19 @@ func NewDriver(config *ConnectConfig) (*Driver, error) {
 }
 
 func (d *Driver) CloneVM(config *CloneConfig) (*object.VirtualMachine, error) {
-	template, err := d.finder.VirtualMachine(d.Ctx, config.Template)
+	template, err := d.finder.VirtualMachine(d.ctx, config.Template)
 	if err != nil {
 		return nil, err
 	}
 
-	folder, err := d.finder.FolderOrDefault(d.Ctx, fmt.Sprintf("/%v/vm/%v", d.datacenter.Name(), config.Folder))
+	folder, err := d.finder.FolderOrDefault(d.ctx, fmt.Sprintf("/%v/vm/%v", d.datacenter.Name(), config.Folder))
 	if err != nil {
 		return nil, err
 	}
 
 	var relocateSpec types.VirtualMachineRelocateSpec
 
-	pool, err := d.finder.ResourcePoolOrDefault(d.Ctx, fmt.Sprintf("/%v/host/%v/Resources/%v", d.datacenter.Name(), config.Host, config.ResourcePool))
+	pool, err := d.finder.ResourcePoolOrDefault(d.ctx, fmt.Sprintf("/%v/host/%v/Resources/%v", d.datacenter.Name(), config.Host, config.ResourcePool))
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ func (d *Driver) CloneVM(config *CloneConfig) (*object.VirtualMachine, error) {
 	relocateSpec.Pool = &poolRef
 
 	if config.Datastore != "" {
-		datastore, err := d.finder.Datastore(d.Ctx, config.Datastore)
+		datastore, err := d.finder.Datastore(d.ctx, config.Datastore)
 		if err != nil {
 			return nil, err
 		}
@@ -130,7 +130,7 @@ func (d *Driver) CloneVM(config *CloneConfig) (*object.VirtualMachine, error) {
 		cloneSpec.Location.DiskMoveType = "createNewChildDiskBacking"
 
 		var tpl mo.VirtualMachine
-		err = template.Properties(d.Ctx, template.Reference(), []string{"snapshot"}, &tpl)
+		err = template.Properties(d.ctx, template.Reference(), []string{"snapshot"}, &tpl)
 		if err != nil {
 			return nil, err
 		}
@@ -141,12 +141,12 @@ func (d *Driver) CloneVM(config *CloneConfig) (*object.VirtualMachine, error) {
 		cloneSpec.Snapshot = tpl.Snapshot.CurrentSnapshot
 	}
 
-	task, err := template.Clone(d.Ctx, folder, config.VMName, cloneSpec)
+	task, err := template.Clone(d.ctx, folder, config.VMName, cloneSpec)
 	if err != nil {
 		return nil, err
 	}
 
-	info, err := task.WaitForResult(d.Ctx, nil)
+	info, err := task.WaitForResult(d.ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -156,11 +156,11 @@ func (d *Driver) CloneVM(config *CloneConfig) (*object.VirtualMachine, error) {
 }
 
 func (d *Driver) DestroyVM(vm *object.VirtualMachine) error {
-	task, err := vm.Destroy(d.Ctx)
+	task, err := vm.Destroy(d.ctx)
 	if err != nil {
 		return err
 	}
-	_, err = task.WaitForResult(d.Ctx, nil)
+	_, err = task.WaitForResult(d.ctx, nil)
 	return err
 }
 
@@ -180,25 +180,25 @@ func (d *Driver) ConfigureVM(vm *object.VirtualMachine, config *HardwareConfig) 
 
 	confSpec.MemoryReservationLockedToMax = &config.RAMReserveAll
 
-	task, err := vm.Reconfigure(d.Ctx, confSpec)
+	task, err := vm.Reconfigure(d.ctx, confSpec)
 	if err != nil {
 		return err
 	}
-	_, err = task.WaitForResult(d.Ctx, nil)
+	_, err = task.WaitForResult(d.ctx, nil)
 	return err
 }
 
 func (d *Driver) PowerOn(vm *object.VirtualMachine) error {
-	task, err := vm.PowerOn(d.Ctx)
+	task, err := vm.PowerOn(d.ctx)
 	if err != nil {
 		return err
 	}
-	_, err = task.WaitForResult(d.Ctx, nil)
+	_, err = task.WaitForResult(d.ctx, nil)
 	return err
 }
 
 func (d *Driver) WaitForIP(vm *object.VirtualMachine) (string, error) {
-	ip, err := vm.WaitForIP(d.Ctx)
+	ip, err := vm.WaitForIP(d.ctx)
 	if err != nil {
 		return "", err
 	}
@@ -206,7 +206,7 @@ func (d *Driver) WaitForIP(vm *object.VirtualMachine) (string, error) {
 }
 
 func (d *Driver) PowerOff(vm *object.VirtualMachine) error {
-	state, err := vm.PowerState(d.Ctx)
+	state, err := vm.PowerState(d.ctx)
 	if err != nil {
 		return err
 	}
@@ -215,23 +215,23 @@ func (d *Driver) PowerOff(vm *object.VirtualMachine) error {
 		return nil
 	}
 
-	task, err := vm.PowerOff(d.Ctx)
+	task, err := vm.PowerOff(d.ctx)
 	if err != nil {
 		return err
 	}
-	_, err = task.WaitForResult(d.Ctx, nil)
+	_, err = task.WaitForResult(d.ctx, nil)
 	return err
 }
 
 func (d *Driver) StartShutdown(vm *object.VirtualMachine) error {
-	err := vm.ShutdownGuest(d.Ctx)
+	err := vm.ShutdownGuest(d.ctx)
 	return err
 }
 
 func (d *Driver) WaitForShutdown(vm *object.VirtualMachine, timeout time.Duration) error {
 	shutdownTimer := time.After(timeout)
 	for {
-		powerState, err := vm.PowerState(d.Ctx)
+		powerState, err := vm.PowerState(d.ctx)
 		if err != nil {
 			return err
 		}
@@ -251,15 +251,15 @@ func (d *Driver) WaitForShutdown(vm *object.VirtualMachine, timeout time.Duratio
 }
 
 func (d *Driver) CreateSnapshot(vm *object.VirtualMachine) error {
-	task, err := vm.CreateSnapshot(d.Ctx, "Created by Packer", "", false, false)
+	task, err := vm.CreateSnapshot(d.ctx, "Created by Packer", "", false, false)
 	if err != nil {
 		return err
 	}
-	_, err = task.WaitForResult(d.Ctx, nil)
+	_, err = task.WaitForResult(d.ctx, nil)
 	return err
 }
 
 func (d *Driver) ConvertToTemplate(vm *object.VirtualMachine) error {
-	err := vm.MarkAsTemplate(d.Ctx)
+	err := vm.MarkAsTemplate(d.ctx)
 	return err
 }
