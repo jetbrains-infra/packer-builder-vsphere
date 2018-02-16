@@ -536,7 +536,7 @@ func (vm *VirtualMachine) PutUsbScanCodes(s string) (int32, error) {
 	return resp.Returnval, nil
 }
 
-func getUsbScanCodeSpec(s string) types.UsbScanCodeSpec {
+func getUsbScanCodeSpec(message string) types.UsbScanCodeSpec {
 	scancodeIndex := make(map[string]uint)
 	scancodeIndex["abcdefghijklmnopqrstuvwxyz"] = 4
 	scancodeIndex["ABCDEFGHIJKLMNOPQRSTUVWXYZ"] = 4
@@ -565,8 +565,9 @@ func getUsbScanCodeSpec(s string) types.UsbScanCodeSpec {
 		KeyEvents: []types.UsbScanCodeSpecKeyEvent{},
 	}
 
-	for _, char := range s {
-		r, _ := utf8.DecodeRuneInString(string(char))
+	for len(message) > 0 {
+		r, size := utf8.DecodeRuneInString(message)
+		message = message[size:]
 		scancode := scancodeMap[r]
 		keyShift := unicode.IsUpper(r) || strings.ContainsRune(shiftedChars, r)
 
