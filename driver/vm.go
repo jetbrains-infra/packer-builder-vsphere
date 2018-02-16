@@ -6,6 +6,7 @@ import (
 	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
+	"github.com/vmware/govmomi/vim25/methods"
 	"time"
 	"strings"
 )
@@ -518,4 +519,74 @@ func (vm *VirtualMachine) addDevice(device types.BaseVirtualDevice) error {
 
 func convertGiBToKiB(gib int64) int64 {
 	return gib * 1024 * 1024
+}
+
+func (vm *VirtualMachine) PutUsbScanCodes(s string) (int32, error) {
+	spec := &types.PutUsbScanCodes{
+		This: vm.vm.Reference(),
+		Spec: getUsbScanCodeSpec(s),
+	}
+	resp, err := methods.PutUsbScanCodes(vm.driver.ctx, vm.driver.client.RoundTripper, spec)
+	if err != nil {
+		return 0, err
+	}
+
+	return resp.Returnval, nil
+}
+
+func getUsbScanCodeSpec(s string) types.UsbScanCodeSpec {
+	spec := types.UsbScanCodeSpec{
+		KeyEvents: []types.UsbScanCodeSpecKeyEvent{},
+	}
+
+	for _, char := range s {
+		code := keys[string(char)]
+		event := types.UsbScanCodeSpecKeyEvent{
+			// https://github.com/lamw/vghetto-scripts/blob/f74bc8ba20064f46592bcce5a873b161a7fa3d72/powershell/VMKeystrokes.ps1#L130
+			UsbHidCode: code << 16 | 7,
+			Modifiers: &types.UsbScanCodeSpecModifierType{},
+		}
+		spec.KeyEvents = append(spec.KeyEvents, event)
+	}
+
+	return spec
+}
+
+var keys = map[string]int32{
+	"a": 4,
+	"b": 5,
+	"c": 6,
+	"d": 7,
+	"e": 8,
+	"f": 9,
+	"g": 10,
+	"h": 11,
+	"i": 12,
+	"j": 13,
+	"k": 14,
+	"l": 15,
+	"m": 16,
+	"n": 17,
+	"o": 18,
+	"p": 19,
+	"q": 20,
+	"r": 21,
+	"s": 22,
+	"t": 23,
+	"u": 24,
+	"v": 25,
+	"w": 26,
+	"x": 27,
+	"y": 28,
+	"z": 29,
+	"1": 30,
+	"2": 31,
+	"3": 32,
+	"4": 33,
+	"5": 34,
+	"6": 35,
+	"7": 36,
+	"8": 37,
+	"9": 38,
+	"0": 39,
 }
