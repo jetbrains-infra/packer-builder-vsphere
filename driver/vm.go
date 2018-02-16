@@ -561,15 +561,59 @@ func getUsbScanCodeSpec(message string) types.UsbScanCodeSpec {
 		}
 	}
 
+	special := map[string]uint{
+		"<enter>": 40,
+		"<esc>": 41,
+		"<bs>": 42,
+		"<del>": 76,
+		"<tab>": 43,
+		"<f1>":  58,
+		"<f2>":  59,
+		"<f3>":  60,
+		"<f4>":  61,
+		"<f5>":  62,
+		"<f6>":  63,
+		"<f7>":  64,
+		"<f8>":  65,
+		"<f9>":  66,
+		"<f10>": 67,
+		"<f11>": 68,
+		"<f12>": 69,
+		"<insert>"  : 73,
+		"<home>"    : 74,
+		"<end>"     : 77,
+		"<pageUp>"  : 75,
+		"<pageDown>": 78,
+		"<left>"    : 80,
+		"<right>"     : 79,
+		"<up>"  : 82,
+		"<down>": 81,
+	}
+
 	spec := types.UsbScanCodeSpec{
 		KeyEvents: []types.UsbScanCodeSpecKeyEvent{},
 	}
 
 	for len(message) > 0 {
-		r, size := utf8.DecodeRuneInString(message)
-		message = message[size:]
-		scancode := scancodeMap[r]
-		keyShift := unicode.IsUpper(r) || strings.ContainsRune(shiftedChars, r)
+		var scancode uint
+		var keyShift bool
+
+		if scancode == 0 {
+			for specialCode, specialValue := range special {
+				if strings.HasPrefix(message, specialCode) {
+					scancode = specialValue
+					message = message[len(specialCode):]
+					break
+				}
+			}
+		}
+
+		if scancode == 0 {
+			r, size := utf8.DecodeRuneInString(message)
+			scancode = scancodeMap[r]
+			keyShift = unicode.IsUpper(r) || strings.ContainsRune(shiftedChars, r)
+			message = message[size:]
+		}
 
 		event := types.UsbScanCodeSpecKeyEvent{
 			// https://github.com/lamw/vghetto-scripts/blob/f74bc8ba20064f46592bcce5a873b161a7fa3d72/powershell/VMKeystrokes.ps1#L130
