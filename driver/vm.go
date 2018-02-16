@@ -10,6 +10,7 @@ import (
 	"time"
 	"strings"
 	"unicode/utf8"
+	"unicode"
 )
 
 type VirtualMachine struct {
@@ -547,6 +548,8 @@ func getUsbScanCodeSpec(s string) types.UsbScanCodeSpec {
 	scancodeIndex[ ";'`,./" ] = 51
 	scancodeIndex[":\"~<>?" ] = 51
 
+	shiftedChars := "!@#$%^&*()_+{}|:\"~<>?"
+
 	scancodeMap := make(map[rune]uint)
 	for chars, start := range scancodeIndex {
 		var i uint = 0
@@ -565,10 +568,14 @@ func getUsbScanCodeSpec(s string) types.UsbScanCodeSpec {
 	for _, char := range s {
 		r, _ := utf8.DecodeRuneInString(string(char))
 		scancode := scancodeMap[r]
+		keyShift := unicode.IsUpper(r) || strings.ContainsRune(shiftedChars, r)
+
 		event := types.UsbScanCodeSpecKeyEvent{
 			// https://github.com/lamw/vghetto-scripts/blob/f74bc8ba20064f46592bcce5a873b161a7fa3d72/powershell/VMKeystrokes.ps1#L130
 			UsbHidCode: int32(scancode) << 16 | 7,
-			Modifiers: &types.UsbScanCodeSpecModifierType{},
+			Modifiers: &types.UsbScanCodeSpecModifierType{
+				LeftShift: &keyShift,
+			},
 		}
 		spec.KeyEvents = append(spec.KeyEvents, event)
 	}
