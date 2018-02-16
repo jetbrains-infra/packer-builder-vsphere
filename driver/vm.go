@@ -9,6 +9,7 @@ import (
 	"github.com/vmware/govmomi/vim25/methods"
 	"time"
 	"strings"
+	"unicode/utf8"
 )
 
 type VirtualMachine struct {
@@ -535,58 +536,42 @@ func (vm *VirtualMachine) PutUsbScanCodes(s string) (int32, error) {
 }
 
 func getUsbScanCodeSpec(s string) types.UsbScanCodeSpec {
+	scancodeIndex := make(map[string]uint)
+	scancodeIndex["abcdefghijklmnopqrstuvwxyz"] = 4
+	scancodeIndex["ABCDEFGHIJKLMNOPQRSTUVWXYZ"] = 4
+	scancodeIndex["1234567890"] = 30
+	scancodeIndex["!@#$%^&*()"] = 30
+	scancodeIndex[" "] = 44
+	scancodeIndex["-=[]\\"] = 45
+	scancodeIndex["_+{}|" ] = 45
+	scancodeIndex[ ";'`,./" ] = 51
+	scancodeIndex[":\"~<>?" ] = 51
+
+	scancodeMap := make(map[rune]uint)
+	for chars, start := range scancodeIndex {
+		var i uint = 0
+		for len(chars) > 0 {
+			r, size := utf8.DecodeRuneInString(chars)
+			chars = chars[size:]
+			scancodeMap[r] = start + i
+			i += 1
+		}
+	}
+
 	spec := types.UsbScanCodeSpec{
 		KeyEvents: []types.UsbScanCodeSpecKeyEvent{},
 	}
 
 	for _, char := range s {
-		code := keys[string(char)]
+		r, _ := utf8.DecodeRuneInString(string(char))
+		scancode := scancodeMap[r]
 		event := types.UsbScanCodeSpecKeyEvent{
 			// https://github.com/lamw/vghetto-scripts/blob/f74bc8ba20064f46592bcce5a873b161a7fa3d72/powershell/VMKeystrokes.ps1#L130
-			UsbHidCode: code << 16 | 7,
+			UsbHidCode: int32(scancode) << 16 | 7,
 			Modifiers: &types.UsbScanCodeSpecModifierType{},
 		}
 		spec.KeyEvents = append(spec.KeyEvents, event)
 	}
 
 	return spec
-}
-
-var keys = map[string]int32{
-	"a": 4,
-	"b": 5,
-	"c": 6,
-	"d": 7,
-	"e": 8,
-	"f": 9,
-	"g": 10,
-	"h": 11,
-	"i": 12,
-	"j": 13,
-	"k": 14,
-	"l": 15,
-	"m": 16,
-	"n": 17,
-	"o": 18,
-	"p": 19,
-	"q": 20,
-	"r": 21,
-	"s": 22,
-	"t": 23,
-	"u": 24,
-	"v": 25,
-	"w": 26,
-	"x": 27,
-	"y": 28,
-	"z": 29,
-	"1": 30,
-	"2": 31,
-	"3": 32,
-	"4": 33,
-	"5": 34,
-	"6": 35,
-	"7": 36,
-	"8": 37,
-	"9": 38,
-	"0": 39,
 }

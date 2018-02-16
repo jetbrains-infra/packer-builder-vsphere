@@ -21,7 +21,7 @@ func main() {
 		panic(err)
 	}
 
-	n, err := vm.PutUsbScanCodes("abc123")
+	n, err := vm.PutUsbScanCodes("abc123!@QAS =+,<")
 	if err != nil {
 		panic(err)
 	}
