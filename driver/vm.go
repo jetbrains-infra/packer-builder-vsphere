@@ -562,41 +562,74 @@ func getUsbScanCodeSpec(message string) types.UsbScanCodeSpec {
 	}
 
 	special := map[string]uint{
-		"<enter>": 40,
-		"<esc>": 41,
-		"<bs>": 42,
-		"<del>": 76,
-		"<tab>": 43,
-		"<f1>":  58,
-		"<f2>":  59,
-		"<f3>":  60,
-		"<f4>":  61,
-		"<f5>":  62,
-		"<f6>":  63,
-		"<f7>":  64,
-		"<f8>":  65,
-		"<f9>":  66,
-		"<f10>": 67,
-		"<f11>": 68,
-		"<f12>": 69,
-		"<insert>"  : 73,
-		"<home>"    : 74,
-		"<end>"     : 77,
-		"<pageUp>"  : 75,
+		"<enter>":    40,
+		"<esc>":      41,
+		"<bs>":       42,
+		"<del>":      76,
+		"<tab>":      43,
+		"<f1>":       58,
+		"<f2>":       59,
+		"<f3>":       60,
+		"<f4>":       61,
+		"<f5>":       62,
+		"<f6>":       63,
+		"<f7>":       64,
+		"<f8>":       65,
+		"<f9>":       66,
+		"<f10>":      67,
+		"<f11>":      68,
+		"<f12>":      69,
+		"<insert>":   73,
+		"<home>":     74,
+		"<end>":      77,
+		"<pageUp>":   75,
 		"<pageDown>": 78,
-		"<left>"    : 80,
-		"<right>"     : 79,
-		"<up>"  : 82,
-		"<down>": 81,
+		"<left>":     80,
+		"<right>":    79,
+		"<up>":       82,
+		"<down>":     81,
 	}
 
 	spec := types.UsbScanCodeSpec{
 		KeyEvents: []types.UsbScanCodeSpecKeyEvent{},
 	}
 
+	var keyAlt bool
+	var keyCtrl bool
+	var keyShift bool
+
 	for len(message) > 0 {
 		var scancode uint
-		var keyShift bool
+
+		if strings.HasPrefix(message, "<leftAltOn>") {
+			keyAlt = true
+			message = message[len("<leftAltOn>"):]
+		}
+
+		if strings.HasPrefix(message, "<leftAltOff>") {
+			keyAlt = false
+			message = message[len("<leftAltOff>"):]
+		}
+
+		if strings.HasPrefix(message, "<leftCtrlOn>") {
+			keyCtrl = true
+			message = message[len("<leftCtrlOn>"):]
+		}
+
+		if strings.HasPrefix(message, "<leftCtrlOff>") {
+			keyCtrl = false
+			message = message[len("<leftCtrlOff>"):]
+		}
+
+		if strings.HasPrefix(message, "<leftShiftOn>") {
+			keyShift = true
+			message = message[len("<leftShiftOn>"):]
+		}
+
+		if strings.HasPrefix(message, "<leftShiftOff>") {
+			keyShift = false
+			message = message[len("<leftShiftOff>"):]
+		}
 
 		if scancode == 0 {
 			for specialCode, specialValue := range special {
@@ -608,18 +641,24 @@ func getUsbScanCodeSpec(message string) types.UsbScanCodeSpec {
 			}
 		}
 
+		modAlt := keyAlt
+		modCtrl := keyCtrl
+		modShift := keyShift
+
 		if scancode == 0 {
 			r, size := utf8.DecodeRuneInString(message)
 			scancode = scancodeMap[r]
-			keyShift = unicode.IsUpper(r) || strings.ContainsRune(shiftedChars, r)
+			modShift = modShift || unicode.IsUpper(r) || strings.ContainsRune(shiftedChars, r)
 			message = message[size:]
 		}
 
 		event := types.UsbScanCodeSpecKeyEvent{
 			// https://github.com/lamw/vghetto-scripts/blob/f74bc8ba20064f46592bcce5a873b161a7fa3d72/powershell/VMKeystrokes.ps1#L130
-			UsbHidCode: int32(scancode) << 16 | 7,
+			UsbHidCode: int32(scancode)<<16 | 7,
 			Modifiers: &types.UsbScanCodeSpecModifierType{
-				LeftShift: &keyShift,
+				LeftAlt:     &modAlt,
+				LeftControl: &modCtrl,
+				LeftShift:   &modShift,
 			},
 		}
 		spec.KeyEvents = append(spec.KeyEvents, event)
