@@ -5,6 +5,7 @@ import (
 	"github.com/jetbrains-infra/packer-builder-vsphere/driver"
 	"github.com/mitchellh/multistep"
 	"fmt"
+	"time"
 )
 
 type BootConfig struct {
@@ -25,6 +26,21 @@ func (s *StepBootCommand) Run(state multistep.StateBag) multistep.StepAction {
 
 	ui.Say("Typing boot command...")
 	for _, command := range s.Config.BootCommand {
+		if command == "<wait>" {
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		if command == "<wait5>" {
+			time.Sleep(5 * time.Second)
+			continue
+		}
+
+		if command == "<wait10>" {
+			time.Sleep(10 * time.Second)
+			continue
+		}
+
 		_, err := vm.PutUsbScanCodes(command)
 		if err != nil {
 			state.Put("error", fmt.Errorf("error typing a boot command: %v", err))
