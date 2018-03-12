@@ -3,11 +3,12 @@ package driver
 import (
 	"errors"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
-	"time"
-	"strings"
 )
 
 type VirtualMachine struct {
@@ -79,7 +80,7 @@ func (d *Driver) CreateVM(config *CreateConfig) (*VirtualMachine, error) {
 		return nil, err
 	}
 
-	resourcePool, err := d.FindResourcePool(config.Host, config.ResourcePool)
+	resourcePool, err := d.FindResourcePool(config.ResourcePool)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +173,7 @@ func (template *VirtualMachine) Clone(config *CloneConfig) (*VirtualMachine, err
 
 	var relocateSpec types.VirtualMachineRelocateSpec
 
-	pool, err := template.driver.FindResourcePool(config.Host, config.ResourcePool)
+	pool, err := template.driver.FindResourcePool(config.ResourcePool)
 	if err != nil {
 		return nil, err
 	}
