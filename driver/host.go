@@ -1,36 +1,61 @@
 package driver
 
 import (
-	"github.com/vmware/govmomi/object"
-	"github.com/vmware/govmomi/vim25/types"
-	"github.com/vmware/govmomi/vim25/mo"
 	"fmt"
+
+	"github.com/vmware/govmomi/object"
+	"github.com/vmware/govmomi/vim25/mo"
+	"github.com/vmware/govmomi/vim25/types"
 )
 
 type Host struct {
 	driver *Driver
-	host *object.HostSystem
+	host   *object.HostSystem
 }
 
 func (d *Driver) NewHost(ref *types.ManagedObjectReference) *Host {
 	return &Host{
-		host: object.NewHostSystem(d.client.Client, *ref),
+		host:   object.NewHostSystem(d.client.Client, *ref),
 		driver: d,
 	}
 }
 
 func (d *Driver) FindHost(name string) (*Host, error) {
-	h, err := d.finder.HostSystem(d.ctx, fmt.Sprintf("/%v/host/%v", d.datacenter.Name(), name))
-	if err != nil {
-		return nil, err
+	t := d.client.ServiceContent.About.ApiType
+	switch t {
+	case "HostAgent":
+		h, err := d.finder.DefaultHostSystem(d.ctx)
+		if err != nil {
+			return nil, err
+		}
+		return &Host{
+			host:   h,
+			driver: d,
+		}, nil
+	case "VirtualCenter":
+		if name != "" {
+			h, err := d.finder.HostSystem(d.ctx, name)
+			if err != nil {
+				return nil, err
+			}
+			return &Host{
+				host:   h,
+				driver: d,
+			}, nil
+		}
+		h, err := d.finder.DefaultHostSystem(d.ctx)
+		if err != nil {
+			return nil, err
+		}
+		return &Host{
+			host:   h,
+			driver: d,
+		}, nil
 	}
-	return &Host{
-		host:   h,
-		driver: d,
-	}, nil
+	return nil, fmt.Errorf("unsupported ApiType: %s", t)
 }
 
-func (h *Host) Info(params ...string) (*mo.HostSystem, error){
+func (h *Host) Info(params ...string) (*mo.HostSystem, error) {
 	var p []string
 	if len(params) == 0 {
 		p = []string{"*"}

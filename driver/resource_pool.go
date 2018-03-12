@@ -1,10 +1,11 @@
 package driver
 
 import (
-	"github.com/vmware/govmomi/object"
-	"github.com/vmware/govmomi/vim25/types"
-	"github.com/vmware/govmomi/vim25/mo"
 	"fmt"
+
+	"github.com/vmware/govmomi/object"
+	"github.com/vmware/govmomi/vim25/mo"
+	"github.com/vmware/govmomi/vim25/types"
 )
 
 type ResourcePool struct {
@@ -19,15 +20,44 @@ func (d *Driver) NewResourcePool(ref *types.ManagedObjectReference) *ResourcePoo
 	}
 }
 
-func (d *Driver) FindResourcePool(host string, name string) (*ResourcePool, error) {
-	p, err := d.finder.ResourcePool(d.ctx, fmt.Sprintf("/%v/host/%v/Resources/%v", d.datacenter.Name(), host, name))
-	if err != nil {
-		return nil, err
+func (d *Driver) FindResourcePool(name string) (*ResourcePool, error) {
+	t := d.client.ServiceContent.About.ApiType
+	switch t {
+	case "HostAgent":
+		ddc, err := d.finder.DefaultDatacenter(d.ctx)
+		if err != nil {
+			return nil, err
+		}
+		d.finder.SetDatacenter(ddc)
+		p, err := d.finder.DefaultResourcePool(d.ctx)
+		if err != nil {
+			return nil, err
+		}
+		return &ResourcePool{
+			pool:   p,
+			driver: d,
+		}, nil
+	case "VirtualCenter":
+		if name != "" {
+			p, err := d.finder.ResourcePool(d.ctx, name)
+			if err != nil {
+				return nil, err
+			}
+			return &ResourcePool{
+				pool:   p,
+				driver: d,
+			}, nil
+		}
+		p, err := d.finder.DefaultResourcePool(d.ctx)
+		if err != nil {
+			return nil, err
+		}
+		return &ResourcePool{
+			pool:   p,
+			driver: d,
+		}, nil
 	}
-	return &ResourcePool{
-		pool: p,
-		driver: d,
-	}, nil
+	return nil, fmt.Errorf("unsupported ApiType: %s", t)
 }
 
 func (p *ResourcePool) Info(params ...string) (*mo.ResourcePool, error) {
