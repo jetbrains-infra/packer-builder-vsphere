@@ -5,30 +5,20 @@ import (
 	"github.com/hashicorp/packer/packer"
 	"fmt"
 	"github.com/jetbrains-infra/packer-builder-vsphere/driver"
+	"github.com/jetbrains-infra/packer-builder-vsphere/common"
 )
 
 type CloneConfig struct {
 	Template     string `mapstructure:"template"`
-	VMName       string `mapstructure:"vm_name"`
-	Folder       string `mapstructure:"folder"`
-	Cluster      string `mapstructure:"cluster"`
-	Host         string `mapstructure:"host"`
-	ResourcePool string `mapstructure:"resource_pool"`
-	Datastore    string `mapstructure:"datastore"`
+	common.VMConfig     `mapstructure:",squash"`
 	LinkedClone  bool   `mapstructure:"linked_clone"`
 }
 
 func (c *CloneConfig) Prepare() []error {
-	var errs []error
+	errs := c.VMConfig.Prepare()
 
 	if c.Template == "" {
 		errs = append(errs, fmt.Errorf("Template name is required"))
-	}
-	if c.VMName == "" {
-		errs = append(errs, fmt.Errorf("Target VM name is required"))
-	}
-	if c.Cluster == "" && c.Host == "" {
-		errs = append(errs, fmt.Errorf("vSphere host or cluster is required"))
 	}
 
 	return errs
