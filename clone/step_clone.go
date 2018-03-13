@@ -11,6 +11,7 @@ type CloneConfig struct {
 	Template     string `mapstructure:"template"`
 	VMName       string `mapstructure:"vm_name"`
 	Folder       string `mapstructure:"folder"`
+	Cluster      string `mapstructure:"cluster"`
 	Host         string `mapstructure:"host"`
 	ResourcePool string `mapstructure:"resource_pool"`
 	Datastore    string `mapstructure:"datastore"`
@@ -26,8 +27,8 @@ func (c *CloneConfig) Prepare() []error {
 	if c.VMName == "" {
 		errs = append(errs, fmt.Errorf("Target VM name is required"))
 	}
-	if c.Host == "" {
-		errs = append(errs, fmt.Errorf("vSphere host is required"))
+	if c.Cluster == "" && c.Host == "" {
+		errs = append(errs, fmt.Errorf("vSphere host or cluster is required"))
 	}
 
 	return errs
@@ -52,6 +53,7 @@ func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 	vm, err := template.Clone(&driver.CloneConfig{
 		Name:         s.config.VMName,
 		Folder:       s.config.Folder,
+		Cluster:	  s.config.Cluster,
 		Host:         s.config.Host,
 		ResourcePool: s.config.ResourcePool,
 		Datastore:    s.config.Datastore,

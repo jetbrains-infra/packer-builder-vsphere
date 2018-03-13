@@ -18,6 +18,7 @@ type VirtualMachine struct {
 type CloneConfig struct {
 	Name         string
 	Folder       string
+	Cluster 	 string
 	Host         string
 	ResourcePool string
 	Datastore    string
@@ -177,7 +178,7 @@ func (template *VirtualMachine) Clone(config *CloneConfig) (*VirtualMachine, err
 
 	var relocateSpec types.VirtualMachineRelocateSpec
 
-	pool, err := template.driver.FindResourcePool("", config.Host, config.ResourcePool)
+	pool, err := template.driver.FindResourcePool(config.Cluster, config.Host, config.ResourcePool)
 	if err != nil {
 		return nil, err
 	}
