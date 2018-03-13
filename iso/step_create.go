@@ -16,6 +16,7 @@ type CreateConfig struct {
 
 	VMName        string `mapstructure:"vm_name"`
 	Folder        string `mapstructure:"folder"`
+	Cluster       string `mapstructure:"cluster"`
 	Host          string `mapstructure:"host"`
 	ResourcePool  string `mapstructure:"resource_pool"`
 	Datastore     string `mapstructure:"datastore"`
@@ -38,8 +39,8 @@ func (c *CreateConfig) Prepare() []error {
 	if tmp.VMName == "" {
 		errs = append(errs, fmt.Errorf("Target VM name is required"))
 	}
-	if tmp.Host == "" {
-		errs = append(errs, fmt.Errorf("vSphere host is required"))
+	if tmp.Cluster == "" && tmp.Host == "" {
+		errs = append(errs, fmt.Errorf("vSphere host or cluster is required"))
 	}
 
 	if len(errs) > 0 {
@@ -74,6 +75,7 @@ func (s *StepCreateVM) Run(state multistep.StateBag) multistep.StepAction {
 		DiskControllerType:  s.Config.DiskControllerType,
 		Name:                s.Config.VMName,
 		Folder:              s.Config.Folder,
+		Cluster:             s.Config.Cluster,
 		Host:                s.Config.Host,
 		ResourcePool:        s.Config.ResourcePool,
 		Datastore:           s.Config.Datastore,
