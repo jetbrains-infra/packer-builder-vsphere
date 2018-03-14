@@ -5,6 +5,7 @@ import (
 	"github.com/vmware/govmomi/vim25/types"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/soap"
+	"fmt"
 )
 
 type Datastore struct {
@@ -20,15 +21,34 @@ func (d *Driver) NewDatastore(ref *types.ManagedObjectReference) *Datastore {
 }
 
 // If name is an empty string, returns the default datastore (is exists)
-func (d *Driver) FindDatastore(name string) (*Datastore, error) {
-	ds, err := d.finder.DatastoreOrDefault(d.ctx, name)
-	if err != nil {
-		return nil, err
+func (d *Driver) FindDatastore(name string, host string) (*Datastore, error) {
+	if name != "" {
+		ds, err := d.finder.Datastore(d.ctx, name)
+		if err != nil {
+			return nil, err
+		}
+
+		return &Datastore{
+			ds:     ds,
+			driver: d,
+		}, nil
+	} else {
+		h, err := d.FindHost(host)
+		if err != nil {
+			return nil, err
+		}
+
+		i, err := h.Info("datastore")
+		if err != nil {
+			return nil, err
+		}
+
+		if len (i.Datastore) != 1 {
+			return nil, fmt.Errorf("cannot detect datastore. Specify it explicitly")
+		}
+
+		return d.NewDatastore(&i.Datastore[0]), nil
 	}
-	return &Datastore{
-		ds:     ds,
-		driver: d,
-	}, nil
 }
 
 func (ds *Datastore) Info(params ...string) (*mo.Datastore, error) {
