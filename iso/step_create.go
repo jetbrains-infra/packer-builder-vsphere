@@ -19,6 +19,7 @@ type CreateConfig struct {
 	Network       string `mapstructure:"network"`
 	NetworkCard   string `mapstructure:"network_card"`
 	USBController bool   `mapstructure:"usb_controller"`
+	Version       string `mapstructure:"vm_version"`
 }
 
 func (c *CreateConfig) Prepare() []error {
@@ -71,6 +72,7 @@ func (s *StepCreateVM) Run(state multistep.StateBag) multistep.StepAction {
 		Network:             s.Config.Network,
 		NetworkCard:         s.Config.NetworkCard,
 		USBController:       s.Config.USBController,
+		Version:             s.Config.Version,
 	})
 
 	if err != nil {
