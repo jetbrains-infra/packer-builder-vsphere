@@ -104,13 +104,53 @@ See the [examples folder](https://github.com/jetbrains-infra/packer-builder-vsph
 
 ## Configuration Reference
 
+### Specifying Clusters and Hosts
+The `cluster` and `host` configuration options control where virtual machines will be created. This section applies to both the `vsphere-iso` and `vsphere-clone` builders.
+
+#### ESXi Host Without Cluster
+Only use the `host` option. Do not use the `cluster` option. Optionally specify a `resource_pool`.
+
+```
+"host": "esxi-2.vsphere65.test"
+```
+
+OR
+
+```
+"host": "esxi-2.vsphere65.test"
+resource_pool": "pool1"
+```
+
+#### ESXi Cluster Without DRS
+Use the `cluster` and `host `options.
+
+```
+"cluster": "cluster1",
+"host": "esxi-2.vsphere65.test"
+```
+
+#### ESXi Cluster With DRS
+Only use the `cluster` option. Do not use the `host` option. Optionally specify a `resource_pool`.
+
+```
+"cluster": "cluster2"
+```
+
+OR
+
+```
+"cluster": "cluster2"
+resource_pool": "pool1"
+```
+
 ### Plugin vsphere-iso
 
 #### Required
 * `vcenter_server`(string) - vCenter server hostname.
 * `username`(string) - vSphere username.
 * `password`(string) - vSphere password.
-* `host`(string) - vSphere host or cluster where target VM is created. A full path must be specified if the host is in a folder. For example `folder/host`.
+* `host`(string) - ESXi host where target VM is created. A full path must be specified if the host is in a folder. For example `folder/host`. See the `Specifying Clusters and Hosts` section above for more details.
+* `cluster`(string)  - ESXi cluster where target VM is created. See the `Specifying Clusters and Host` section above for more details.
 * `vm_name`(string) - Name of the new VM to create.
 * `ssh_username`(string) - Username in guest OS.
 * `ssh_password`(string) - Password to access guest OS. Only specify `ssh_password` or `ssh_private_key_file`, but not both.
@@ -143,7 +183,7 @@ See the [examples folder](https://github.com/jetbrains-infra/packer-builder-vsph
 * `RAM`(number) - Amount of RAM in MB.
 * `RAM_reservation`(number) - Amount of reserved RAM in MB.
 * `RAM_reserve_all`(boolean) - Reserve all available RAM. Defaults to `false`. Cannot be used together with `RAM_reservation`.
-* `resource_pool`(string) - VMWare resource pool. Defaults to the root resource pool of the vSphere `host`.
+* `resource_pool`(string) - VMWare resource pool. Defaults to the root resource pool of the `host` or `cluster`.
 * `shutdown_command`(string) - Specify a VM guest shutdown command. VMware guest tools are used by default.
 * `shutdown_timeout`(string) - Amount of time to wait for graceful VM shutdown. Examples 45s and 10m. Defaults to 5m(5 minutes). See the Go Lang [ParseDuration](https://golang.org/pkg/time/#ParseDuration) documentation for full details.
 * `usb_controller`(boolean) - Create US controller for virtual machine. Defaults to `false`.
@@ -154,7 +194,8 @@ See the [examples folder](https://github.com/jetbrains-infra/packer-builder-vsph
 * `vcenter_server`(string) - vCenter server hostname.
 * `username`(string) - vSphere username.
 * `password`(string) - vSphere password.
-* `host`(string) - vSphere host or cluster where target VM is created. A full path must be specified if the host is in a folder. For example `folder/host`.
+* `host`(string) - ESXi host where target VM is created. A full path must be specified if the host is in a folder. For example `folder/host`. See the `Specifying Clusters and Hosts` section above for more details.
+* `cluster`(string)  - ESXi cluster where target VM is created. See the `Specifying Clusters and Host` section above for more details.
 * `template`(string) - Name of source VM. Path is optional.
 * `vm_name`(string) - Name of the new VM to create.
 * `ssh_username`(string) - Username in guest OS.
@@ -179,6 +220,6 @@ See the [examples folder](https://github.com/jetbrains-infra/packer-builder-vsph
 * `RAM`(number) - Amount of RAM in MB. Inherited from `template` by default.
 * `RAM_reservation`(number) - Amount of reserved RAM in MB. Inherited from `template` by default.
 * `RAM_reserve_all`(boolean) - Reserve all available RAM. Defaults to `false`. Cannot be used together with `RAM_reservation`.
-* `resource_pool`(string) - VMWare resource pool. Defaults to the root resource pool of the vSphere `host`.
+* `resource_pool`(string) - VMWare resource pool. Defaults to the root resource pool of the `host` or `cluster`.
 * `shutdown_command`(string) - Specify a VM guest shutdown command. VMware guest tools are used by default.
 * `shutdown_timeout`(string) - Amount of time to wait for graceful VM shutdown. Examples 45s and 10m. Defaults to 5m(5 minutes). See the Go Lang [ParseDuration](https://golang.org/pkg/time/#ParseDuration) documentation for full details.
