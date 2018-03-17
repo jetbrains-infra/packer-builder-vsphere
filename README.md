@@ -177,7 +177,6 @@ resource_pool": "pool1"
 * `guest_os_type`(string) - Set VM OS type. Defaults to `otherGuest`. See [here](https://pubs.vmware.com/vsphere-6-5/index.jsp?topic=%2Fcom.vmware.wssdk.apiref.doc%2Fvim.vm.GuestOsDescriptor.GuestOsIdentifier.html) for a full list of possible values.
 * `insecure_connection`(boolean) - Do not validate vCenter server's TLS certificate. Defaults to `false`.
 * `iso_paths`(array of strings) - List of data store paths to ISO files that will be mounted to the VM. Example `"[datastore1] ISO/ubuntu-16.04.3-server-amd64.iso"`.
-* `NestedHV`(boolean) - Enable nested hardware virtualization for VM. Defaults to `false`.
 * `network`(string) - Set network VM will be connected to.
 * `network_card`(string) - Set VM network card type. Example `vmxnet3`.
 * `RAM`(number) - Amount of RAM in MB.
