@@ -20,19 +20,9 @@ func (d *Driver) NewDatastore(ref *types.ManagedObjectReference) *Datastore {
 	}
 }
 
-// If name is an empty string, returns the default datastore (is exists)
+// If name is an empty string, then resolve host's one
 func (d *Driver) FindDatastore(name string, host string) (*Datastore, error) {
-	if name != "" {
-		ds, err := d.finder.Datastore(d.ctx, name)
-		if err != nil {
-			return nil, err
-		}
-
-		return &Datastore{
-			ds:     ds,
-			driver: d,
-		}, nil
-	} else {
+	if name == "" {
 		h, err := d.FindHost(host)
 		if err != nil {
 			return nil, err
@@ -43,12 +33,24 @@ func (d *Driver) FindDatastore(name string, host string) (*Datastore, error) {
 			return nil, err
 		}
 
-		if len (i.Datastore) != 1 {
-			return nil, fmt.Errorf("cannot detect datastore. Specify it explicitly")
+		if len(i.Datastore) > 1 {
+			return nil, fmt.Errorf("Host has multiple datastores. Specify it explicitly")
 		}
 
-		return d.NewDatastore(&i.Datastore[0]), nil
+		ds := d.NewDatastore(&i.Datastore[0])
+		inf, err := ds.Info("name")
+		name = inf.Name
 	}
+
+	ds, err := d.finder.Datastore(d.ctx, name)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Datastore{
+		ds:     ds,
+		driver: d,
+	}, nil
 }
 
 func (ds *Datastore) Info(params ...string) (*mo.Datastore, error) {
