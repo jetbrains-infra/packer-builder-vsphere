@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/packer/template/interpolate"
 	"github.com/jetbrains-infra/packer-builder-vsphere/common"
 	"fmt"
-	"regexp"
 )
 
 type Config struct {
@@ -44,9 +43,6 @@ func NewConfig(raws ...interface{}) (*Config, []string, error) {
 	}
 	errs = packer.MultiErrorAppend(errs, c.ShutdownConfig.Prepare()...)
 	errs = packer.MultiErrorAppend(errs, c.CreateConfig.Prepare()...)
-	if matched, _ := regexp.MatchString(`^vmx-\d+$`, c.Version); !matched && c.Version != "" {
-		errs = packer.MultiErrorAppend(errs, fmt.Errorf("'vm_version': " + c.Version + " is not a supported VM version. Valid values start with 'vmx-' and end in a number. Example vmx-10"))
-	}
 
 	if len(errs.Errors) > 0 {
 		return nil, nil, errs
