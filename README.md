@@ -16,7 +16,7 @@ This a plugin for [HashiCorp Packer](https://www.packer.io/). It uses native vSp
 {
   "builders": [
     {
-      "type": "vsphere",
+      "type": "vsphere-clone",
 
       "vcenter_server": "vcenter.domain.com",
       "username": "root",
