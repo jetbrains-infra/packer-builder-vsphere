@@ -14,8 +14,8 @@ type HardwareConfig struct {
 	RAMReserveAll       bool  `mapstructure:"RAM_reserve_all"`
 	DiskSize            int64 `mapstructure:"disk_size"`
 	NestedHV            bool  `mapstructure:"NestedHV"`
-	CpuHotAddEnabled    bool  `mapstructure:"cpu_hot_add_enable"`
-	MemoryHotAddEnabled bool  `mapstructure:"memory_hot_add_enable"`
+	CpuHotAddEnabled    bool  `mapstructure:"CPU_hot_plug"`
+	MemoryHotAddEnabled bool  `mapstructure:"RAM_hot_plug"`
 }
 
 func (c *HardwareConfig) Prepare() []error {

@@ -327,8 +327,8 @@ func hardwareConfig() string {
 	config["CPU_limit"] = 1500
 	config["RAM"] = 2048
 	config["RAM_reservation"] = 1024
-	config["cpu_hot_add_enable"] = true
-	config["memory_hot_add_enable"] = true
+	config["CPU_hot_plug"] = true
+	config["RAM_hot_plug"] = true
 
 	return commonT.RenderConfig(config)
 }
