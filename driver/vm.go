@@ -8,6 +8,7 @@ import (
 	"github.com/vmware/govmomi/vim25/types"
 	"time"
 	"strings"
+	"github.com/vmware/govmomi/property"
 )
 
 type VirtualMachine struct {
@@ -585,4 +586,90 @@ func (vm *VirtualMachine) AddConfigParams(params map[string]string) error {
 
 	_, err = task.WaitForResult(vm.driver.ctx, nil)
 	return err
+}
+
+
+//https://github.com/vmware/govmomi/blob/master/govc/vm/create.go#L455
+func (d *Driver) recommendDatastore(dsc *Datastorecluster, pool *ResourcePool, spec *types.VirtualMachineConfigSpec) (*Datastore, error){
+	sp := dsc.dsc.Reference()
+
+	// create podSelectionSpec to be used in StoragePlacementSpecs
+	podSelectionSpec := types.StorageDrsPodSelectionSpec{
+		StoragePod: &sp,
+	}
+
+	// Keep list of disks that need to be placed
+	var disks []*types.VirtualDisk
+
+	// Collect disks eligible for placement
+	for _, deviceConfigSpec := range spec.DeviceChange {
+		s := deviceConfigSpec.GetVirtualDeviceConfigSpec()
+		if s.Operation != types.VirtualDeviceConfigSpecOperationAdd {
+			continue
+		}
+
+		if s.FileOperation != types.VirtualDeviceConfigSpecFileOperationCreate {
+			continue
+		}
+
+		d, ok := s.Device.(*types.VirtualDisk)
+		if !ok {
+			continue
+		}
+
+		podConfigForPlacement := types.VmPodConfigForPlacement{
+			StoragePod: sp,
+			Disk: []types.PodDiskLocator{
+				{
+					DiskId:          d.Key,
+					DiskBackingInfo: d.Backing,
+				},
+			},
+		}
+
+		podSelectionSpec.InitialVmConfig = append(podSelectionSpec.InitialVmConfig, podConfigForPlacement)
+		disks = append(disks, d)
+	}
+
+	sps := types.StoragePlacementSpec{
+		Type: string(types.StoragePlacementSpecPlacementTypeCreate),
+		ResourcePool: types.NewReference(pool.pool.Reference()),
+		PodSelectionSpec: podSelectionSpec,
+		ConfigSpec: spec,
+	}
+
+	srm := object.NewStorageResourceManager(d.client.Client)
+	result, err := srm.RecommendDatastores(d.ctx, sps)
+	if err != nil {
+		return nil, err
+	}
+
+	// Use result to pin disks to recommended datastores
+	recs := result.Recommendations
+	if len(recs) == 0 {
+		return nil, fmt.Errorf("no recommendations for datastore inside datastorecluster: '%v'", dsc.dsc.Name())
+	}
+
+	ds := recs[0].Action[0].(*types.StoragePlacementAction).Destination
+
+	var mds mo.Datastore
+	err = property.DefaultCollector(d.client.Client).RetrieveOne(d.ctx, ds, []string{"name"}, &mds)
+	if err != nil {
+		return nil, err
+	}
+
+	datastoreRaw := object.NewDatastore(d.client.Client, ds)
+	datastoreRaw.InventoryPath = mds.Name
+
+	for _, disk := range disks {
+		backing := disk.Backing.(*types.VirtualDiskFlatVer2BackingInfo)
+		backing.Datastore = &ds
+	}
+
+	datastore := Datastore{
+		ds: datastoreRaw,
+		driver: d,
+
+	}
+	return &datastore, nil
 }
