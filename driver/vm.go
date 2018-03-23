@@ -44,18 +44,19 @@ type CreateConfig struct {
 	DiskThinProvisioned bool
 	DiskControllerType  string // example: "scsi", "pvscsi"
 
-	Annotation    string
-	Name          string
-	Folder        string
-	Cluster		  string
-	Host          string
-	ResourcePool  string
-	Datastore     string
-	GuestOS       string // example: otherGuest
-	Network       string // "" for default network
-	NetworkCard   string // example: vmxnet3
-	USBController bool
-	Version       int // example: 10
+	Annotation       string
+	Name             string
+	Folder           string
+	Cluster          string
+	Host             string
+	ResourcePool     string
+	Datastore        string
+	Datastorecluster string
+	GuestOS          string // example: otherGuest
+	Network          string // "" for default network
+	NetworkCard      string // example: vmxnet3
+	USBController    bool
+	Version          int // example: 10
 }
 
 func (d *Driver) NewVM(ref *types.ManagedObjectReference) *VirtualMachine {
@@ -98,9 +99,21 @@ func (d *Driver) CreateVM(config *CreateConfig) (*VirtualMachine, error) {
 		host = h.host
 	}
 
-	datastore, err := d.FindDatastore(config.Datastore, config.Host)
-	if err != nil {
-		return nil, err
+	var datastore *Datastore
+	var datastorecluster *Datastorecluster
+
+	if config.Datastorecluster != ""{
+		dsc, err := d.FindDatastorecluster(config.Datastorecluster)
+		if err != nil {
+			return nil, err
+		}
+		datastorecluster = dsc
+	} else if config.Datastore != ""{
+		ds, err := d.FindDatastore(config.Datastore, config.Host)
+		if err != nil {
+			return nil, err
+		}
+		datastore = ds
 	}
 
 	devices := object.VirtualDeviceList{}
@@ -129,6 +142,14 @@ func (d *Driver) CreateVM(config *CreateConfig) (*VirtualMachine, error) {
 	createSpec.DeviceChange, err = devices.ConfigSpec(types.VirtualDeviceConfigSpecOperationAdd)
 	if err != nil {
 		return nil, err
+	}
+
+	//get recommendation of datastore inside datastorecluster for placement of VM
+	if datastorecluster != nil  {
+		datastore, err = d.recommendDatastore(datastorecluster, resourcePool, &createSpec)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	createSpec.Files = &types.VirtualMachineFileInfo{

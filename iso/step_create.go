@@ -71,6 +71,7 @@ func (s *StepCreateVM) Run(state multistep.StateBag) multistep.StepAction {
 		Cluster:             s.Config.Cluster,
 		Host:                s.Config.Host,
 		ResourcePool:        s.Config.ResourcePool,
+		Datastorecluster:    s.Config.Datastorecluster,
 		Datastore:           s.Config.Datastore,
 		GuestOS:             s.Config.GuestOSType,
 		Network:             s.Config.Network,

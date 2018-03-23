@@ -52,6 +52,10 @@ func (p *ResourcePool) Info(params ...string) (*mo.ResourcePool, error) {
 	return &info, nil
 }
 
+func (p *ResourcePool) Name() string {
+	return p.pool.Name()
+}
+
 func (p *ResourcePool) Path() (string, error) {
 	poolInfo, err := p.Info("name", "parent")
 	if err != nil {
