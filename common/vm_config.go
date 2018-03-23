@@ -22,10 +22,10 @@ func (c *VMConfig) Prepare() []error {
 		errs = append(errs, fmt.Errorf("vSphere host or cluster is required"))
 	}
 	if c.Datastorecluster == "" && c.Datastore == "" {
-		errs = append(errs, fmt.Errorf("Datastorecluster or Datastore is required"))
+		errs = append(errs, fmt.Errorf("Datastorecluster or datastore is required"))
 	}
 	if c.Datastorecluster != "" && c.Datastore != "" {
-		errs = append(errs, fmt.Errorf("Datastorecluster and Datastore cannot be set at the same time"))
+		errs = append(errs, fmt.Errorf("Datastorecluster and datastore cannot be set at the same time"))
 	}
 
 	return errs
