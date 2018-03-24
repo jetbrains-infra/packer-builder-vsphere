@@ -162,6 +162,7 @@ resource_pool": "pool1"
 * `boot_wait`(string)  - Amount of time to wait for the VM to boot. Examples 45s and 10m. Defaults to 10s(10 seconds). See the Go Lang [ParseDuration](https://golang.org/pkg/time/#ParseDuration) documentation for full details.
 * `convert_to_template`(boolean) - Convert VM to a template. Defaults to `false`.
 * `CPUs`(number) - Number of CPU sockets.
+* `CPU_hot_plug`(boolean) - Enable CPU hot plug setting for virtual machine. Defaults to `false`.
 * `CPU_limit`(number) - Upper limit of available CPU resources in MHz.
 * `CPU_reservation`(number) - Amount of reserved CPU resources in MHz.
 * `create_snapshot`(boolean) - Create a snapshot when set to `true`, so the VM can be used as a base for linked clones. Defaults to `false`.
@@ -180,6 +181,7 @@ resource_pool": "pool1"
 * `network`(string) - Set network VM will be connected to.
 * `network_card`(string) - Set VM network card type. Example `vmxnet3`.
 * `RAM`(number) - Amount of RAM in MB.
+* `RAM_hot_plug`(boolean) - Enable RAM hot plug setting for virtual machine. Defaults to `false`.
 * `RAM_reservation`(number) - Amount of reserved RAM in MB.
 * `RAM_reserve_all`(boolean) - Reserve all available RAM. Defaults to `false`. Cannot be used together with `RAM_reservation`.
 * `resource_pool`(string) - VMWare resource pool. Defaults to the root resource pool of the `host` or `cluster`.
@@ -207,6 +209,7 @@ resource_pool": "pool1"
 * `boot_wait`(string)  Amount of time to wait for the VM to boot. Examples 45s and 10m. Defaults to 10s(10 seconds). See the Go Lang [ParseDuration](https://golang.org/pkg/time/#ParseDuration) documentation for full details.
 * `convert_to_template`(boolean) - Convert VM to a template. Defaults to `false`.
 * `CPUs`(number) - Number of CPU sockets. Inherited from `template` by default.
+* `CPU_hot_plug`(boolean) - Enable CPU hot plug setting for virtual machine. Defaults to `false`.
 * `CPU_limit`(number) - Upper limit of available CPU resources in MHz. Inherited from `template` by default, set to `-1` for reset.
 * `CPU_reservation`(number) - Amount of reserved CPU resources in MHz. Inherited from `template` by default.
 * `create_snapshot`(boolean) - Create a snapshot when set to `true`, so the VM can be used as a base for linked clones. Defaults to `false`.
@@ -218,6 +221,7 @@ resource_pool": "pool1"
 * `linked_clone`(boolean) - Create VM as a linked clone from latest snapshot. Defaults to `false`.
 * `NestedHV`(boolean) - Enable nested hardware virtualization for VM. Defaults to `false`.
 * `RAM`(number) - Amount of RAM in MB. Inherited from `template` by default.
+* `RAM_hot_plug`(boolean) - Enable RAM hot plug setting for virtual machine. Defaults to `false`.
 * `RAM_reservation`(number) - Amount of reserved RAM in MB. Inherited from `template` by default.
 * `RAM_reserve_all`(boolean) - Reserve all available RAM. Defaults to `false`. Cannot be used together with `RAM_reservation`.
 * `resource_pool`(string) - VMWare resource pool. Defaults to the root resource pool of the `host` or `cluster`.
