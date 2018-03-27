@@ -8,7 +8,6 @@ import (
 	"github.com/vmware/govmomi/vim25/types"
 	"time"
 	"strings"
-	"github.com/vmware/govmomi/property"
 )
 
 type VirtualMachine struct {
@@ -589,6 +588,7 @@ func (vm *VirtualMachine) AddConfigParams(params map[string]string) error {
 }
 
 
+
 //https://github.com/vmware/govmomi/blob/master/govc/vm/create.go#L455
 func (d *Driver) recommendDatastore(dsc *Datastorecluster, pool *ResourcePool, spec *types.VirtualMachineConfigSpec) (*Datastore, error){
 	sp := dsc.dsc.Reference()
@@ -598,12 +598,14 @@ func (d *Driver) recommendDatastore(dsc *Datastorecluster, pool *ResourcePool, s
 		StoragePod: &sp,
 	}
 
+
 	// Keep list of disks that need to be placed
 	var disks []*types.VirtualDisk
 
 	// Collect disks eligible for placement
 	for _, deviceConfigSpec := range spec.DeviceChange {
 		s := deviceConfigSpec.GetVirtualDeviceConfigSpec()
+
 		if s.Operation != types.VirtualDeviceConfigSpecOperationAdd {
 			continue
 		}
@@ -644,32 +646,22 @@ func (d *Driver) recommendDatastore(dsc *Datastorecluster, pool *ResourcePool, s
 		return nil, err
 	}
 
-	// Use result to pin disks to recommended datastores
 	recs := result.Recommendations
 	if len(recs) == 0 {
 		return nil, fmt.Errorf("no recommendations for datastore inside datastorecluster: '%v'", dsc.dsc.Name())
 	}
 
-	ds := recs[0].Action[0].(*types.StoragePlacementAction).Destination
+	rds := recs[0].Action[0].(*types.StoragePlacementAction).Destination
 
-	var mds mo.Datastore
-	err = property.DefaultCollector(d.client.Client).RetrieveOne(d.ctx, ds, []string{"name"}, &mds)
-	if err != nil {
-		return nil, err
-	}
-
-	datastoreRaw := object.NewDatastore(d.client.Client, ds)
-	datastoreRaw.InventoryPath = mds.Name
-
+	// Use result to pin disks to recommended datastores
 	for _, disk := range disks {
 		backing := disk.Backing.(*types.VirtualDiskFlatVer2BackingInfo)
-		backing.Datastore = &ds
+		backing.Datastore = &rds
 	}
 
-	datastore := Datastore{
-		ds: datastoreRaw,
-		driver: d,
+	ds := d.NewDatastore(&rds)
+	dsInfo, err := ds.Info("name")
+	ds.ds.InventoryPath = dsInfo.Name
 
-	}
-	return &datastore, nil
+	return ds, nil
 }
