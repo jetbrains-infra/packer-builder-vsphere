@@ -3,7 +3,6 @@ package driver
 import "testing"
 
 func TestDatastoreclusterAcc(t *testing.T) {
-	initDriverAcceptanceTest(t)
 
 	testDatastoreclusterName := "CHDC1EXP01"
 	d := newTestDriver(t)
