@@ -598,7 +598,6 @@ func (d *Driver) recommendDatastore(dsc *Datastorecluster, pool *ResourcePool, s
 		StoragePod: &sp,
 	}
 
-
 	// Keep list of disks that need to be placed
 	var disks []*types.VirtualDisk
 
