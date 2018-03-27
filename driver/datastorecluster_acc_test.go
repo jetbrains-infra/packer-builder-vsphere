@@ -2,9 +2,9 @@ package driver
 
 import "testing"
 
-func TestDatastoreclusterAcc(t *testing.T) {
+const testDatastoreclusterName = "CHDC1EXP01"
 
-	testDatastoreclusterName := "CHDC1EXP01"
+func TestDatastoreclusterAcc(t *testing.T) {
 	d := newTestDriver(t)
 	dsc, err := d.FindDatastorecluster(testDatastoreclusterName)
 	if err != nil {
