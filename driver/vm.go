@@ -109,7 +109,7 @@ func (d *Driver) CreateVM(config *CreateConfig) (*VirtualMachine, error) {
 			return nil, err
 		}
 		datastorecluster = dsc
-	} else if config.Datastore != ""{
+	} else {
 		ds, err := d.FindDatastore(config.Datastore, config.Host)
 		if err != nil {
 			return nil, err
