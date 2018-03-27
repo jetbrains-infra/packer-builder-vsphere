@@ -51,8 +51,8 @@ type CreateConfig struct {
 	Cluster          string
 	Host             string
 	ResourcePool     string
-	Datastore        string
 	Datastorecluster string
+	Datastore        string
 	GuestOS          string // example: otherGuest
 	Network          string // "" for default network
 	NetworkCard      string // example: vmxnet3
