@@ -146,7 +146,7 @@ func (d *Driver) CreateVM(config *CreateConfig) (*VirtualMachine, error) {
 
 	//get recommendation of datastore inside datastorecluster for placement of VM
 	if datastorecluster != nil  {
-		datastore, err = d.recommendDatastore(datastorecluster, resourcePool, &createSpec)
+		datastore, err = d.recommendDatastoreCreate(datastorecluster, resourcePool, &createSpec)
 		if err != nil {
 			return nil, err
 		}
@@ -590,7 +590,7 @@ func (vm *VirtualMachine) AddConfigParams(params map[string]string) error {
 
 
 //https://github.com/vmware/govmomi/blob/master/govc/vm/create.go#L455
-func (d *Driver) recommendDatastore(dsc *Datastorecluster, pool *ResourcePool, spec *types.VirtualMachineConfigSpec) (*Datastore, error){
+func (d *Driver) recommendDatastoreCreate(dsc *Datastorecluster, pool *ResourcePool, spec *types.VirtualMachineConfigSpec) (*Datastore, error){
 	sp := dsc.dsc.Reference()
 
 	// create podSelectionSpec to be used in StoragePlacementSpecs
@@ -633,10 +633,10 @@ func (d *Driver) recommendDatastore(dsc *Datastorecluster, pool *ResourcePool, s
 	}
 
 	sps := types.StoragePlacementSpec{
-		Type: string(types.StoragePlacementSpecPlacementTypeCreate),
-		ResourcePool: types.NewReference(pool.pool.Reference()),
+		Type:             string(types.StoragePlacementSpecPlacementTypeCreate),
+		ResourcePool:     types.NewReference(pool.pool.Reference()),
 		PodSelectionSpec: podSelectionSpec,
-		ConfigSpec: spec,
+		ConfigSpec:       spec,
 	}
 
 	srm := object.NewStorageResourceManager(d.client.Client)
