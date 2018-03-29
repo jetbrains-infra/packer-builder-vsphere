@@ -43,7 +43,7 @@ func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
 	vm, err := template.Clone(&driver.CloneConfig{
 		Name:              s.config.VMName,
 		Folder:            s.config.Folder,
-		Cluster:	       s.config.Cluster,
+		Cluster:           s.config.Cluster,
 		Host:              s.config.Host,
 		ResourcePool:      s.config.ResourcePool,
 		Datastorecluster : s.config.Datastorecluster,
