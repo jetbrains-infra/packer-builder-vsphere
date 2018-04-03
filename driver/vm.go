@@ -660,6 +660,9 @@ func (d *Driver) recommendDatastoreCreate(dsc *Datastorecluster, pool *ResourceP
 
 	ds := d.NewDatastore(&rds)
 	dsInfo, err := ds.Info("name")
+	if err != nil {
+		return nil, err
+	}
 	ds.ds.InventoryPath = dsInfo.Name
 
 	return ds, nil
