@@ -103,17 +103,15 @@ func (d *Driver) CreateVM(config *CreateConfig) (*VirtualMachine, error) {
 	var datastorecluster *Datastorecluster
 
 	if config.Datastorecluster != ""{
-		dsc, err := d.FindDatastorecluster(config.Datastorecluster)
+		datastorecluster, err = d.FindDatastorecluster(config.Datastorecluster)
 		if err != nil {
 			return nil, err
 		}
-		datastorecluster = dsc
 	} else {
-		ds, err := d.FindDatastore(config.Datastore, config.Host)
+		datastore, err = d.FindDatastore(config.Datastore, config.Host)
 		if err != nil {
 			return nil, err
 		}
-		datastore = ds
 	}
 
 	devices := object.VirtualDeviceList{}
