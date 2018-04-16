@@ -78,6 +78,14 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	}
 
 	steps = append(steps,
+		&StepRemoveCDRom{
+			Config: &b.config.CDRomConfig,
+		},
+		&StepRemoveFloppy{
+			Config:    &b.config.FloppyConfig,
+			Datastore: b.config.Datastore,
+			Host: b.config.Host,
+		},
 		&common.StepCreateSnapshot{
 			CreateSnapshot: b.config.CreateSnapshot,
 		},
