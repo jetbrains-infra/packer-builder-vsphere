@@ -585,21 +585,15 @@ func (vm *VirtualMachine) AddConfigParams(params map[string]string) error {
 	return err
 }
 
-
-
-//https://github.com/vmware/govmomi/blob/master/govc/vm/create.go#L455
 func (d *Driver) recommendDatastoreCreate(dsc *Datastorecluster, pool *ResourcePool, spec *types.VirtualMachineConfigSpec) (*Datastore, error){
 	sp := dsc.dsc.Reference()
 
-	// create podSelectionSpec to be used in StoragePlacementSpecs
 	podSelectionSpec := types.StorageDrsPodSelectionSpec{
 		StoragePod: &sp,
 	}
 
-	// Keep list of disks that need to be placed
 	var disks []*types.VirtualDisk
 
-	// Collect disks eligible for placement
 	for _, deviceConfigSpec := range spec.DeviceChange {
 		s := deviceConfigSpec.GetVirtualDeviceConfigSpec()
 
@@ -650,7 +644,6 @@ func (d *Driver) recommendDatastoreCreate(dsc *Datastorecluster, pool *ResourceP
 
 	rds := recs[0].Action[0].(*types.StoragePlacementAction).Destination
 
-	// Use result to pin disks to recommended datastores
 	for _, disk := range disks {
 		backing := disk.Backing.(*types.VirtualDiskFlatVer2BackingInfo)
 		backing.Datastore = &rds
