@@ -19,7 +19,7 @@ func (d *Driver) NewResourcePool(ref *types.ManagedObjectReference) *ResourcePoo
 	}
 }
 
-func (d *Driver) FindResourcePool() (*ResourcePool, error) {
+func (d *Driver) FindResourcePool(name string) (*ResourcePool, error) {
 
 	p, err := d.finder.ResourcePool(d.ctx, fmt.Sprintf("%v", name))
 	if err != nil {
