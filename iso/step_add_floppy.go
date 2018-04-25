@@ -5,7 +5,6 @@ import (
 	"github.com/hashicorp/packer/packer"
 	"github.com/jetbrains-infra/packer-builder-vsphere/driver"
 	"fmt"
-	"github.com/vmware/govmomi/vim25/types"
 	"context"
 )
 
