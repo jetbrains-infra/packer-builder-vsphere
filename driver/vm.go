@@ -84,7 +84,7 @@ func (d *Driver) CreateVM(config *CreateConfig) (*VirtualMachine, error) {
 		return nil, err
 	}
 
-	resourcePool, err := d.FindResourcePool(config.Cluster, config.Host, config.ResourcePool)
+	resourcePool, err := d.FindResourcePool(config.ResourcePool)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +181,7 @@ func (template *VirtualMachine) Clone(config *CloneConfig) (*VirtualMachine, err
 
 	var relocateSpec types.VirtualMachineRelocateSpec
 
-	pool, err := template.driver.FindResourcePool(config.Cluster, config.Host, config.ResourcePool)
+	pool, err := template.driver.FindResourcePool(config.ResourcePool)
 	if err != nil {
 		return nil, err
 	}
