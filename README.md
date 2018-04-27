@@ -69,7 +69,7 @@ Hardware customization:
 * `RAM` - Amount of RAM in megabytes. Inherited from source VM by default.
 * `RAM_reservation` - Amount of reserved RAM in MB. Inherited from source VM by default.
 * `RAM_reserve_all` - Reserve all available RAM (bool). `false` by default. Cannot be used together with `RAM_reservation`.
-* `disk_size` - Change the disk size (in GB). VM should have a single disk. Cannot be used together with `linked_clone`.
+* `disk_size` - Change the disk size (in MB). VM should have a single disk. Cannot be used together with `linked_clone`.
 * `NestedHV` - Allows to enable nested hardware virtualization for VM.
 
 Provisioning:
