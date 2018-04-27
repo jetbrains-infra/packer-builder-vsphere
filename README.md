@@ -55,7 +55,7 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 * `RAM_reservation`(number) - Amount of reserved RAM in MB.
 * `RAM_reserve_all`(boolean) - Reserve all available RAM. Defaults to `false`. Cannot be used together with `RAM_reservation`.
 * `RAM_hot_plug`(boolean) - Enable RAM hot plug setting for virtual machine. Defaults to `false`.
-* `disk_size`(number) - The size of the disk in GB.
+* `disk_size`(number) - The size of the disk in MB.
 * `NestedHV`(boolean) - Enable nested hardware virtualization for VM. Defaults to `false`.
 
 ### Hardware (`vsphere-iso` only)
