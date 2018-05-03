@@ -50,9 +50,11 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 * `CPUs`(number) - Number of CPU sockets.
 * `CPU_limit`(number) - Upper limit of available CPU resources in MHz.
 * `CPU_reservation`(number) - Amount of reserved CPU resources in MHz.
+* `CPU_hot_plug`(boolean) - Enable CPU hot plug setting for virtual machine. Defaults to `false`.
 * `RAM`(number) - Amount of RAM in MB.
 * `RAM_reservation`(number) - Amount of reserved RAM in MB.
 * `RAM_reserve_all`(boolean) - Reserve all available RAM. Defaults to `false`. Cannot be used together with `RAM_reservation`.
+* `RAM_hot_plug`(boolean) - Enable RAM hot plug setting for virtual machine. Defaults to `false`.
 * `disk_size`(number) - The size of the disk in GB.
 * `NestedHV`(boolean) - Enable nested hardware virtualization for VM. Defaults to `false`.
 
