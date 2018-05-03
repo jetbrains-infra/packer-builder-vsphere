@@ -35,7 +35,7 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 
 * `folder`(string) - VM folder to create the VM in.
 * `host`(string) - ESXi host where target VM is created. A full path must be specified if the host is in a folder. For example `folder/host`. See the `Specifying Clusters and Hosts` section above for more details.
-* `cluster`(string)  - ESXi cluster where target VM is created. See the `Specifying Clusters and Host` section above for more details.
+* `cluster`(string)  - ESXi cluster where target VM is created. See [Working with Clusters](#working-with-clusters) section.
 * `vm_name`(string) - Name of the new VM to create.
 * `resource_pool`(string) - VMWare resource pool. Defaults to the root resource pool of the `host` or `cluster`.
 * `datastore`(string) - VMWare datastore. Required if `host` is a cluster, or if `host` has multiple datastores.
@@ -91,41 +91,24 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 * `convert_to_template`(boolean) - Convert VM to a template. Defaults to `false`.
 * `create_snapshot`(boolean) - Create a snapshot when set to `true`, so the VM can be used as a base for linked clones. Defaults to `false`.
 
-## Specifying Clusters and Hosts
-The `cluster` and `host` configuration options control where virtual machines will be created. This section applies to both the `vsphere-iso` and `vsphere-clone` builders.
-
-### ESXi Host Without Cluster
-Only use the `host` option. Do not use the `cluster` option. Optionally specify a `resource_pool`.
-
+## Working with Clusters
+#### Standalone Hosts
+Only use the `host` option. Optionally specify a `resource_pool`:
 ```
-"host": "esxi-2.vsphere65.test"
+"host": "esxi-1.vsphere65.test",
+"resource_pool": "pool1",
 ```
 
-OR
-
-```
-"host": "esxi-2.vsphere65.test"
-resource_pool": "pool1"
-```
-
-### ESXi Cluster Without DRS
-Use the `cluster` and `host `options.
-
+#### Clusters Without DRS
+Use the `cluster` and `host `parameters:
 ```
 "cluster": "cluster1",
-"host": "esxi-2.vsphere65.test"
+"host": "esxi-2.vsphere65.test",
 ```
 
-### ESXi Cluster With DRS
-Only use the `cluster` option. Do not use the `host` option. Optionally specify a `resource_pool`.
-
+#### Clusters With DRS
+Only use the `cluster` option. Optionally specify a `resource_pool`:
 ```
-"cluster": "cluster2"
-```
-
-OR
-
-```
-"cluster": "cluster2"
-resource_pool": "pool1"
+"cluster": "cluster2",
+"resource_pool": "pool1",
 ```
