@@ -33,10 +33,10 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 
 ### VM Location
 
+* `vm_name`(string) - Name of the new VM to create.
 * `folder`(string) - VM folder to create the VM in.
 * `host`(string) - ESXi host where target VM is created. A full path must be specified if the host is in a folder. For example `folder/host`. See the `Specifying Clusters and Hosts` section above for more details.
 * `cluster`(string)  - ESXi cluster where target VM is created. See [Working with Clusters](#working-with-clusters) section.
-* `vm_name`(string) - Name of the new VM to create.
 * `resource_pool`(string) - VMWare resource pool. Defaults to the root resource pool of the `host` or `cluster`.
 * `datastore`(string) - VMWare datastore. Required if `host` is a cluster, or if `host` has multiple datastores.
 
@@ -67,6 +67,7 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 * `network`(string) - Set network VM will be connected to.
 * `network_card`(string) - Set VM network card type. Example `vmxnet3`.
 * `usb_controller`(boolean) - Create US controller for virtual machine. Defaults to `false`.
+* `configuration_parameters`(map) - Custom parameters.
 
 ### Boot (`vsphere-iso` only)
 
@@ -79,17 +80,22 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 
 ### Provision
 
+* `communicator` - `ssh` (default), `winrm`, or `none`.
+
 * `ssh_username`(string) - Username in guest OS.
 * `ssh_password`(string) - Password to access guest OS. Only specify `ssh_password` or `ssh_private_key_file`, but not both.
 * `ssh_private_key_file`(string) - Path to the SSH private key file to access guest OS. Only specify `ssh_password` or `ssh_private_key_file`, but not both.
+
+* `winrm_username`(string) - Username in guest OS.
+* `winrm_password`(string) - Password to access guest OS.
 
 * `shutdown_command`(string) - Specify a VM guest shutdown command. VMware guest tools are used by default.
 * `shutdown_timeout`(string) - Amount of time to wait for graceful VM shutdown. Examples 45s and 10m. Defaults to 5m(5 minutes). See the Go Lang [ParseDuration](https://golang.org/pkg/time/#ParseDuration) documentation for full details.
 
 ### Postprocessing
 
-* `convert_to_template`(boolean) - Convert VM to a template. Defaults to `false`.
 * `create_snapshot`(boolean) - Create a snapshot when set to `true`, so the VM can be used as a base for linked clones. Defaults to `false`.
+* `convert_to_template`(boolean) - Convert VM to a template. Defaults to `false`.
 
 ## Working with Clusters
 #### Standalone Hosts
