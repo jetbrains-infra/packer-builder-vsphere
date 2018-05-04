@@ -57,6 +57,7 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 * `RAM_hot_plug`(boolean) - Enable RAM hot plug setting for virtual machine. Defaults to `false`.
 * `disk_size`(number) - The size of the disk in MB.
 * `NestedHV`(boolean) - Enable nested hardware virtualization for VM. Defaults to `false`.
+* `configuration_parameters`(map) - Custom parameters.
 
 ### Hardware (`vsphere-iso` only)
 
@@ -67,7 +68,6 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 * `network`(string) - Set network VM will be connected to.
 * `network_card`(string) - Set VM network card type. Example `vmxnet3`.
 * `usb_controller`(boolean) - Create US controller for virtual machine. Defaults to `false`.
-* `configuration_parameters`(map) - Custom parameters.
 
 ### Boot (`vsphere-iso` only)
 
