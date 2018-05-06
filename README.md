@@ -58,6 +58,7 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 * `disk_size`(number) - The size of the disk in MB.
 * `NestedHV`(boolean) - Enable nested hardware virtualization for VM. Defaults to `false`.
 * `configuration_parameters`(map) - Custom parameters.
+* `boot_order`(string) - Priority of boot devices. Defaults to `disk,cdrom`
 
 ### Hardware (`vsphere-iso` only)
 
@@ -71,7 +72,7 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 
 ### Boot (`vsphere-iso` only)
 
-* `boot_wait`(string) Amount of time to wait for the VM to boot. Examples 45s and 10m. Defaults to 10s(10 seconds). See the Go Lang [ParseDuration](https://golang.org/pkg/time/#ParseDuration) documentation for full details.
+* `boot_wait`(string) Amount of time to wait for the VM to boot. Examples 45s and 10m. Defaults to 10 seconds. See the Go Lang [ParseDuration](https://golang.org/pkg/time/#ParseDuration) documentation for full details.
 * `boot_command`(array of strings) - List of commands to type when the VM is first booted. Used to initalize the operating system installer.
 * `floppy_dirs`(array of strings) - Seems to not do anything useful yet. Not implemented.
 * `floppy_files`(array of strings) - List of local files to be mounted to the VM floppy drive. Can be used to make Debian preseed or RHEL kickstart files available to the VM.
