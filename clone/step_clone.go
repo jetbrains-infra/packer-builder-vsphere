@@ -47,12 +47,13 @@ func (s *StepCloneVM) Run(_ context.Context, state multistep.StateBag) multistep
 	}
 
 	vm, err := template.Clone(&driver.CloneConfig{
-		Name:         s.Location.VMName,
-		Folder:       s.Location.Folder,
-		Cluster:      s.Location.Cluster,
-		Host:         s.Location.Host,
-		ResourcePool: s.Location.ResourcePool,
-		Datastore:    s.Location.Datastore,
+		Name:              s.Location.VMName,
+		Folder:            s.Location.Folder,
+		Cluster:           s.Location.Cluster,
+		Host:              s.Location.Host,
+		ResourcePool:      s.Location.ResourcePool,
+		Datastore:         s.Location.Datastore,
+		Datastorecluster:  s.Location.Datastorecluster,
 		LinkedClone:  s.Config.LinkedClone,
 	})
 	if err != nil {
