@@ -1,9 +1,10 @@
 package common
 
 import (
-	"github.com/mitchellh/multistep"
+	"github.com/hashicorp/packer/helper/multistep"
 	"fmt"
 	"github.com/jetbrains-infra/packer-builder-vsphere/driver"
+	"context"
 )
 
 type ConnectConfig struct {
@@ -18,13 +19,13 @@ func (c *ConnectConfig) Prepare() []error {
 	var errs []error
 
 	if c.VCenterServer == "" {
-		errs = append(errs, fmt.Errorf("vCenter hostname is required"))
+		errs = append(errs, fmt.Errorf("'vcenter_server' is required"))
 	}
 	if c.Username == "" {
-		errs = append(errs, fmt.Errorf("Username is required"))
+		errs = append(errs, fmt.Errorf("'username' is required"))
 	}
 	if c.Password == "" {
-		errs = append(errs, fmt.Errorf("Password is required"))
+		errs = append(errs, fmt.Errorf("'password' is required"))
 	}
 
 	return errs
@@ -34,8 +35,8 @@ type StepConnect struct {
 	Config *ConnectConfig
 }
 
-func (s *StepConnect) Run(state multistep.StateBag) multistep.StepAction {
-	d, err := driver.NewDriver(&driver.ConnectConfig{
+func (s *StepConnect) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
+	d, err := driver.NewDriver(ctx, &driver.ConnectConfig{
 		VCenterServer:      s.Config.VCenterServer,
 		Username:           s.Config.Username,
 		Password:           s.Config.Password,
