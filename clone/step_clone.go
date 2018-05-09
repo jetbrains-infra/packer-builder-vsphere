@@ -1,60 +1,74 @@
 package clone
 
 import (
-	"github.com/mitchellh/multistep"
+	"github.com/hashicorp/packer/helper/multistep"
 	"github.com/hashicorp/packer/packer"
 	"fmt"
 	"github.com/jetbrains-infra/packer-builder-vsphere/driver"
 	"github.com/jetbrains-infra/packer-builder-vsphere/common"
+	"context"
 )
 
 type CloneConfig struct {
-	Template     string `mapstructure:"template"`
-	common.VMConfig     `mapstructure:",squash"`
-	LinkedClone  bool   `mapstructure:"linked_clone"`
+	Template    string `mapstructure:"template"`
+	DiskSize    int64  `mapstructure:"disk_size"`
+	LinkedClone bool   `mapstructure:"linked_clone"`
 }
 
 func (c *CloneConfig) Prepare() []error {
-	errs := c.VMConfig.Prepare()
+	var errs []error
 
 	if c.Template == "" {
-		errs = append(errs, fmt.Errorf("Template name is required"))
+		errs = append(errs, fmt.Errorf("'template' is required"))
+	}
+
+	if c.LinkedClone == true && c.DiskSize != 0 {
+		errs = append(errs, fmt.Errorf("'linked_clone' and 'disk_size' cannot be used together"))
 	}
 
 	return errs
 }
 
 type StepCloneVM struct {
-	config *CloneConfig
+	Config   *CloneConfig
+	Location *common.LocationConfig
 }
 
-func (s *StepCloneVM) Run(state multistep.StateBag) multistep.StepAction {
+func (s *StepCloneVM) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	d := state.Get("driver").(*driver.Driver)
 
 	ui.Say("Cloning VM...")
 
-	template, err := d.FindVM(s.config.Template)
+	template, err := d.FindVM(s.Config.Template)
 	if err != nil {
 		state.Put("error", err)
 		return multistep.ActionHalt
 	}
 
 	vm, err := template.Clone(&driver.CloneConfig{
-		Name:         s.config.VMName,
-		Folder:       s.config.Folder,
-		Cluster:	  s.config.Cluster,
-		Host:         s.config.Host,
-		ResourcePool: s.config.ResourcePool,
-		Datastore:    s.config.Datastore,
-		LinkedClone:  s.config.LinkedClone,
+		Name:         s.Location.VMName,
+		Folder:       s.Location.Folder,
+		Cluster:      s.Location.Cluster,
+		Host:         s.Location.Host,
+		ResourcePool: s.Location.ResourcePool,
+		Datastore:    s.Location.Datastore,
+		LinkedClone:  s.Config.LinkedClone,
 	})
 	if err != nil {
 		state.Put("error", err)
 		return multistep.ActionHalt
 	}
-
 	state.Put("vm", vm)
+
+	if s.Config.DiskSize > 0 {
+		err = vm.ResizeDisk(s.Config.DiskSize)
+		if err != nil {
+			state.Put("error", err)
+			return multistep.ActionHalt
+		}
+	}
+
 	return multistep.ActionContinue
 }
 

@@ -1,14 +1,19 @@
 [[constraint]]
   name = "github.com/hashicorp/packer"
-  version = "=1.0.2"
+  version = "=1.2.2"
+
+[[constraint]]
+  name = "github.com/vmware/govmomi"
+  version = "=0.15.0"
 
 [[override]]
   name = "github.com/masterzen/azure-sdk-for-go"
   branch = "master"
 
-[[constraint]]
-  name = "github.com/vmware/govmomi"
-  version = "=0.15.0"
+# need commit https://github.com/ChrisTrenkamp/goxpath/commit/e2e5bcefc4e07f4a0c587a1200c22665dd39bd0e
+[[override]]
+  name = "github.com/ChrisTrenkamp/goxpath"
+  branch = "master"
 
 [prune]
   go-tests = true

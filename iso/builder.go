@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/packer/packer"
 	"github.com/jetbrains-infra/packer-builder-vsphere/common"
 	"github.com/jetbrains-infra/packer-builder-vsphere/driver"
-	"github.com/mitchellh/multistep"
+	"github.com/hashicorp/packer/helper/multistep"
 	"github.com/hashicorp/packer/helper/communicator"
 )
 
@@ -37,27 +37,31 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			Config: &b.config.ConnectConfig,
 		},
 		&StepCreateVM{
-			Config: &b.config.CreateConfig,
+			Config:   &b.config.CreateConfig,
+			Location: &b.config.LocationConfig,
 		},
-		&StepAddCDRom{
-			Config: &b.config.CDRomConfig,
+		&common.StepConfigureHardware{
+			Config: &b.config.HardwareConfig,
 		},
-		&packerCommon.StepCreateFloppy{
-			Files:       b.config.FloppyFiles,
-			Directories: b.config.FloppyDirectories,
-		},
-		&StepAddFloppy{
-			Config:    &b.config.FloppyConfig,
-			Datastore: b.config.Datastore,
-			Host: b.config.Host,
-		},
-		&StepConfigParams{
-			Config:    &b.config.ConfigParamsConfig,
+		&common.StepConfigParams{
+			Config: &b.config.ConfigParamsConfig,
 		},
 	)
 
 	if b.config.Comm.Type != "none" {
 		steps = append(steps,
+			&StepAddCDRom{
+				Config: &b.config.CDRomConfig,
+			},
+			&packerCommon.StepCreateFloppy{
+				Files:       b.config.FloppyFiles,
+				Directories: b.config.FloppyDirectories,
+			},
+			&StepAddFloppy{
+				Config:    &b.config.FloppyConfig,
+				Datastore: b.config.Datastore,
+				Host:      b.config.Host,
+			},
 			&common.StepRun{
 				Config: &b.config.RunConfig,
 			},
@@ -74,6 +78,11 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			&common.StepShutdown{
 				Config: &b.config.ShutdownConfig,
 			},
+			&StepRemoveCDRom{},
+			&StepRemoveFloppy{
+				Datastore: b.config.Datastore,
+				Host:      b.config.Host,
+			},
 		)
 	}
 
@@ -86,14 +95,16 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 		},
 	)
 
-	// Run!
 	b.runner = packerCommon.NewRunner(steps, b.config.PackerConfig, ui)
 	b.runner.Run(state)
 
-	if err := common.CheckRunStatus(state); err != nil {
-		return nil, err
+	if rawErr, ok := state.GetOk("error"); ok {
+		return nil, rawErr.(error)
 	}
 
+	if _, ok := state.GetOk("vm"); !ok {
+		return nil, nil
+	}
 	artifact := &common.Artifact{
 		Name: b.config.VMName,
 		VM:   state.Get("vm").(*driver.VirtualMachine),
