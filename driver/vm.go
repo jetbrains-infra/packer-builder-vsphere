@@ -8,6 +8,7 @@ import (
 	"github.com/vmware/govmomi/vim25/types"
 	"time"
 	"strings"
+	"context"
 )
 
 type VirtualMachine struct {
@@ -178,7 +179,7 @@ func (vm *VirtualMachine) Devices() (object.VirtualDeviceList, error) {
 	return vmInfo.Config.Hardware.Device, nil
 }
 
-func (template *VirtualMachine) Clone(config *CloneConfig) (*VirtualMachine, error) {
+func (template *VirtualMachine) Clone(ctx context.Context, config *CloneConfig) (*VirtualMachine, error) {
 	folder, err := template.driver.FindFolder(config.Folder)
 	if err != nil {
 		return nil, err
@@ -223,8 +224,13 @@ func (template *VirtualMachine) Clone(config *CloneConfig) (*VirtualMachine, err
 		return nil, err
 	}
 
-	info, err := task.WaitForResult(template.driver.ctx, nil)
+	info, err := task.WaitForResult(ctx, nil)
 	if err != nil {
+		if ctx.Err() == context.Canceled {
+			err = task.Cancel(context.TODO())
+			return nil, err
+		}
+
 		return nil, err
 	}
 
