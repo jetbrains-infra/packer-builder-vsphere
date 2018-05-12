@@ -335,8 +335,8 @@ func (vm *VirtualMachine) PowerOn() error {
 	return err
 }
 
-func (vm *VirtualMachine) WaitForIP() (string, error) {
-	return vm.vm.WaitForIP(vm.driver.ctx)
+func (vm *VirtualMachine) WaitForIP(ctx context.Context) (string, error) {
+	return vm.vm.WaitForIP(ctx)
 }
 
 func (vm *VirtualMachine) PowerOff() error {
