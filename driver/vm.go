@@ -362,7 +362,7 @@ func (vm *VirtualMachine) StartShutdown() error {
 	return err
 }
 
-func (vm *VirtualMachine) WaitForShutdown(timeout time.Duration) error {
+func (vm *VirtualMachine) WaitForShutdown(ctx context.Context, timeout time.Duration) error {
 	shutdownTimer := time.After(timeout)
 	for {
 		powerState, err := vm.vm.PowerState(vm.driver.ctx)
@@ -377,6 +377,8 @@ func (vm *VirtualMachine) WaitForShutdown(timeout time.Duration) error {
 		case <-shutdownTimer:
 			err := errors.New("Timeout while waiting for machine to shut down.")
 			return err
+		case <-ctx.Done():
+			return nil
 		default:
 			time.Sleep(1 * time.Second)
 		}
