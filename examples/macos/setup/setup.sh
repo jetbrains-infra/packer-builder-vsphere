@@ -1,4 +1,5 @@
 #!/bin/sh
+set -eux
 
 # Format partition
 diskutil eraseDisk JHFS+ Disk disk0
@@ -8,5 +9,5 @@ diskutil eraseDisk JHFS+ Disk disk0
   --volume /Volumes/Disk \
   --converttoapfs no \
   --agreetolicense \
-  --installpackage "/Volumes/setup/postinstall.pkg" \
-  --installpackage "/Volumes/VMware Tools/Install VMware Tools.app/Contents/Resources/VMware Tools.pkg"
+  --installpackage "/Volumes/VMware Tools/Install VMware Tools.app/Contents/Resources/VMware Tools.pkg" \
+  --installpackage "/Volumes/setup/postinstall.pkg"
