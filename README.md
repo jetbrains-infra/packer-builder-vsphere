@@ -90,6 +90,9 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 * `winrm_username`(string) - Username in guest OS.
 * `winrm_password`(string) - Password to access guest OS.
 
+* `http_directory`(string) - Path to a directory to serve using an HTTP server.
+* `http_ip`       (string) - Specify IP address on which the HTTP server is started. If not provided the first non-loopback interface is used.
+
 * `shutdown_command`(string) - Specify a VM guest shutdown command. VMware guest tools are used by default.
 * `shutdown_timeout`(string) - Amount of time to wait for graceful VM shutdown. Examples 45s and 10m. Defaults to 5m(5 minutes). See the Go Lang [ParseDuration](https://golang.org/pkg/time/#ParseDuration) documentation for full details.
 
