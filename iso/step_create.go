@@ -35,6 +35,7 @@ func getHostIP() string {
 	for _, a := range addrs {
 		if ip, ok := a.(*net.IPNet); ok && !ip.IP.IsLoopback() {
 			ipaddr = ip.IP.String()
+			break
 		}
 	}
 	return ipaddr
