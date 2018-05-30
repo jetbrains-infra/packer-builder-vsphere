@@ -2,6 +2,9 @@ package iso
 
 import (
 	"fmt"
+	"net"
+
+	packerCommon "github.com/hashicorp/packer/common"
 	"github.com/hashicorp/packer/packer"
 	"github.com/jetbrains-infra/packer-builder-vsphere/common"
 	"github.com/jetbrains-infra/packer-builder-vsphere/driver"
@@ -20,6 +23,21 @@ type CreateConfig struct {
 	Network       string `mapstructure:"network"`
 	NetworkCard   string `mapstructure:"network_card"`
 	USBController bool   `mapstructure:"usb_controller"`
+}
+
+func getHostIP() string {
+	var ipaddr string
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return ""
+	}
+
+	for _, a := range addrs {
+		if ip, ok := a.(*net.IPNet); ok && !ip.IP.IsLoopback() {
+			ipaddr = ip.IP.String()
+		}
+	}
+	return ipaddr
 }
 
 func (c *CreateConfig) Prepare() []error {
@@ -46,6 +64,10 @@ func (s *StepCreateVM) Run(_ context.Context, state multistep.StateBag) multiste
 	d := state.Get("driver").(*driver.Driver)
 
 	ui.Say("Creating VM...")
+
+	hostIP := getHostIP()
+	packerCommon.SetHTTPIP(hostIP)
+
 	vm, err := d.CreateVM(&driver.CreateConfig{
 		DiskThinProvisioned: s.Config.DiskThinProvisioned,
 		DiskControllerType:  s.Config.DiskControllerType,
