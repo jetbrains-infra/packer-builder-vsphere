@@ -3,6 +3,7 @@ package iso
 import (
 	"fmt"
 	"net"
+	"os"
 
 	packerCommon "github.com/hashicorp/packer/common"
 	"github.com/hashicorp/packer/packer"
@@ -23,13 +24,19 @@ type CreateConfig struct {
 	Network       string `mapstructure:"network"`
 	NetworkCard   string `mapstructure:"network_card"`
 	USBController bool   `mapstructure:"usb_controller"`
+	HTTPIP        string `mapstructure:"http_ip"`
 }
 
-func getHostIP() string {
+func getHostIP(s string) string {
+	if net.ParseIP(s) != nil {
+		return s
+	}
+
 	var ipaddr string
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
-		return ""
+		fmt.Println(err)
+		os.Exit(2)
 	}
 
 	for _, a := range addrs {
@@ -66,8 +73,7 @@ func (s *StepCreateVM) Run(_ context.Context, state multistep.StateBag) multiste
 
 	ui.Say("Creating VM...")
 
-	hostIP := getHostIP()
-	packerCommon.SetHTTPIP(hostIP)
+	packerCommon.SetHTTPIP(getHostIP(s.Config.HTTPIP))
 
 	vm, err := d.CreateVM(&driver.CreateConfig{
 		DiskThinProvisioned: s.Config.DiskThinProvisioned,
