@@ -1,16 +1,16 @@
 package iso
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"os"
 
 	packerCommon "github.com/hashicorp/packer/common"
+	"github.com/hashicorp/packer/helper/multistep"
 	"github.com/hashicorp/packer/packer"
 	"github.com/jetbrains-infra/packer-builder-vsphere/common"
 	"github.com/jetbrains-infra/packer-builder-vsphere/driver"
-	"github.com/hashicorp/packer/helper/multistep"
-	"context"
 )
 
 type CreateConfig struct {
@@ -71,10 +71,9 @@ func (s *StepCreateVM) Run(_ context.Context, state multistep.StateBag) multiste
 	ui := state.Get("ui").(packer.Ui)
 	d := state.Get("driver").(*driver.Driver)
 
-	ui.Say("Creating VM...")
-
 	packerCommon.SetHTTPIP(getHostIP(s.Config.HTTPIP))
 
+	ui.Say("Creating VM...")
 	vm, err := d.CreateVM(&driver.CreateConfig{
 		DiskThinProvisioned: s.Config.DiskThinProvisioned,
 		DiskControllerType:  s.Config.DiskControllerType,
