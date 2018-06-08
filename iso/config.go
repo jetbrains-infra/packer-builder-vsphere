@@ -3,15 +3,15 @@ package iso
 import (
 	packerCommon "github.com/hashicorp/packer/common"
 	"github.com/hashicorp/packer/helper/communicator"
+	"github.com/hashicorp/packer/helper/config"
 	"github.com/hashicorp/packer/packer"
 	"github.com/hashicorp/packer/template/interpolate"
 	"github.com/jetbrains-infra/packer-builder-vsphere/common"
-	"github.com/hashicorp/packer/helper/config"
 )
 
 type Config struct {
 	packerCommon.PackerConfig `mapstructure:",squash"`
-    packerCommon.HTTPConfig   `mapstructure:",squash"`
+	packerCommon.HTTPConfig   `mapstructure:",squash"`
 
 	common.ConnectConfig      `mapstructure:",squash"`
 	CreateConfig              `mapstructure:",squash"`
@@ -47,7 +47,7 @@ func NewConfig(raws ...interface{}) (*Config, []string, error) {
 	errs = packer.MultiErrorAppend(errs, c.CreateConfig.Prepare()...)
 	errs = packer.MultiErrorAppend(errs, c.LocationConfig.Prepare()...)
 	errs = packer.MultiErrorAppend(errs, c.HardwareConfig.Prepare()...)
-    errs = packer.MultiErrorAppend(errs, c.HTTPConfig.Prepare(&c.ctx)...)
+	errs = packer.MultiErrorAppend(errs, c.HTTPConfig.Prepare(&c.ctx)...)
 
 	errs = packer.MultiErrorAppend(errs, c.RunConfig.Prepare()...)
 	errs = packer.MultiErrorAppend(errs, c.BootConfig.Prepare()...)
