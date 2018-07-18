@@ -20,7 +20,7 @@ func (d *Driver) NewFolder(ref *types.ManagedObjectReference) *Folder {
 }
 
 func (d *Driver) FindFolder(name string) (*Folder, error) {
-	f, err := d.finder.Folder(d.ctx, fmt.Sprintf("/%v/vm/%v", d.datacenter.Name(), name))
+	f, err := d.finder.Folder(d.ctx, fmt.Sprintf("/%v/%v", d.datacenter.Name(), name))
 	if err != nil {
 		return nil, err
 	}
