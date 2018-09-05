@@ -104,6 +104,7 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 
 ### Postprocessing
 
+* `remove_network_card`(boolean) - Remove all network cards before creating a snapshot/template if set to `true`. Defaults to `false`.
 * `create_snapshot`(boolean) - Create a snapshot when set to `true`, so the VM can be used as a base for linked clones. Defaults to `false`.
 * `convert_to_template`(boolean) - Convert VM to a template. Defaults to `false`.
 
