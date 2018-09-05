@@ -1,0 +1,61 @@
+{
+  "builders": [
+    {
+      "type": "vsphere-iso",
+      "vm_version": 13,
+      "vcenter_server":      "vcenter.admin",
+      "username":            "administrator@vcenter.admin",
+      "password":            "password",
+      "insecure_connection": "true",
+      "datacenter" : "datacenter",
+      "vm_name": "test-template-centos-7",
+      "cluster" : "cluster",
+      "host" : "192.168.15.8",
+      
+      "guest_os_type": "rhel7_64Guest",
+
+      "communicator": "ssh",
+      "ssh_username": "root",
+      "ssh_password": "root",
+
+      "CPUs":             1,
+      "CPU_limit":        -1,
+      "RAM":              2048,
+
+      "convert_to_template": true,
+      "remove_network_card": true,
+
+      "disk_size":        10240,
+      "disk_thin_provisioned": true,
+      "disk_controller_type": "pvscsi",
+
+      "network_card": "vmxnet3",
+      "network": "677-in1-vmadm",
+
+      "iso_paths": [
+        "[par3-c1-pve-1] ISO/CentOS-7-x86_64-Minimal-1804.iso"
+      ],
+
+      "floppy_files": [
+        "{{template_dir}}/ks.cfg"
+      ],
+
+      "boot_wait": "10s",
+
+      "boot_command": [
+        "<tab>",
+        " text inst.ks=hd:fd0:/ks.cfg net.ifnames=0 biosdevname=0",
+        "<wait>",
+        "<enter>",
+        "<wait>",
+        "<enter>"
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": ["ip a"]
+    }
+  ]
+}
