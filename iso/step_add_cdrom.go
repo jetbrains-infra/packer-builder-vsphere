@@ -1,11 +1,11 @@
 package iso
 
 import (
+	"context"
+	"fmt"
+	"github.com/hashicorp/packer/helper/multistep"
 	"github.com/hashicorp/packer/packer"
 	"github.com/jetbrains-infra/packer-builder-vsphere/driver"
-	"github.com/hashicorp/packer/helper/multistep"
-	"fmt"
-	"context"
 )
 
 type CDRomConfig struct {

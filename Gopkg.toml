@@ -1,10 +1,10 @@
 [[constraint]]
   name = "github.com/hashicorp/packer"
-  version = "~1.2"
+  version = "~1.2.0"
 
 [[constraint]]
   name = "github.com/vmware/govmomi"
-  version = "~0.17"
+  version = "~0.17.0"
 
 [[override]]
   name = "github.com/masterzen/azure-sdk-for-go"

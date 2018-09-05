@@ -5,9 +5,9 @@ import (
 	"io/ioutil"
 
 	packerssh "github.com/hashicorp/packer/communicator/ssh"
+	"github.com/hashicorp/packer/helper/communicator"
 	"github.com/hashicorp/packer/helper/multistep"
 	"golang.org/x/crypto/ssh"
-	"github.com/hashicorp/packer/helper/communicator"
 )
 
 func CommHost(state multistep.StateBag) (string, error) {

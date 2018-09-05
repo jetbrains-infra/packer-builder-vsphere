@@ -12,5 +12,5 @@ services:
     volumes:
       - .:/go/src/github.com/jetbrains-infra/packer-builder-vsphere
     working_dir: /go/src/github.com/jetbrains-infra/packer-builder-vsphere
-#    network_mode: "container:vpn"
     command: ./test.sh
+#    network_mode: "container:vpn"

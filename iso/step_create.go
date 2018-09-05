@@ -1,12 +1,12 @@
 package iso
 
 import (
+	"context"
 	"fmt"
+	"github.com/hashicorp/packer/helper/multistep"
 	"github.com/hashicorp/packer/packer"
 	"github.com/jetbrains-infra/packer-builder-vsphere/common"
 	"github.com/jetbrains-infra/packer-builder-vsphere/driver"
-	"github.com/hashicorp/packer/helper/multistep"
-	"context"
 )
 
 type CreateConfig struct {
