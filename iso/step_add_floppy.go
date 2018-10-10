@@ -67,4 +67,42 @@ func (s *StepAddFloppy) Run(_ context.Context, state multistep.StateBag) multist
 	return multistep.ActionContinue
 }
 
-func (s *StepAddFloppy) Cleanup(state multistep.StateBag) {}
+func (s *StepAddFloppy) Cleanup(state multistep.StateBag) {
+	_, cancelled := state.GetOk(multistep.StateCancelled)
+	_, halted := state.GetOk(multistep.StateHalted)
+	if !cancelled && !halted {
+		return
+	}
+
+	ui := state.Get("ui").(packer.Ui)
+	
+	stv := state.Get("vm")
+	if stv == nil {
+		return
+	}
+	vm := stv.(*driver.VirtualMachine)
+	
+	std := state.Get("driver")
+	if std == nil {
+		return
+	}
+	d := std.(*driver.Driver)
+
+
+	ui.Say("Remove floppy image ...")
+
+	ds, err := d.FindDatastore(s.Datastore, s.Host)
+	if err != nil {
+		state.Put("error", err)
+	}
+	vmDir, err := vm.GetDir()
+	if err != nil {
+		state.Put("error", err)
+	}
+
+	deletePath := fmt.Sprintf("%v/packer-tmp-created-floppy.flp", vmDir)
+	if err := ds.Delete(deletePath); err != nil {
+		state.Put("error", err)
+	}
+
+}
