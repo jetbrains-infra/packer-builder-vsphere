@@ -1,13 +1,13 @@
 package iso
 
 import (
-	builderT "github.com/hashicorp/packer/helper/builder/testing"
-	commonT "github.com/jetbrains-infra/packer-builder-vsphere/common/testing"
-	"testing"
-	"github.com/hashicorp/packer/packer"
-	"github.com/vmware/govmomi/vim25/types"
 	"fmt"
+	builderT "github.com/hashicorp/packer/helper/builder/testing"
+	"github.com/hashicorp/packer/packer"
+	commonT "github.com/jetbrains-infra/packer-builder-vsphere/common/testing"
+	"github.com/vmware/govmomi/vim25/types"
 	"io/ioutil"
+	"testing"
 )
 
 func TestISOBuilderAcc_default(t *testing.T) {

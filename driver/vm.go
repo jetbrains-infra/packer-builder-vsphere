@@ -1,14 +1,14 @@
 package driver
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
-	"time"
 	"strings"
-	"context"
+	"time"
 )
 
 type VirtualMachine struct {

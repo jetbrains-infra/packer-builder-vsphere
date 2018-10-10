@@ -92,14 +92,14 @@
     "template/interpolate",
     "version"
   ]
-  revision = "b4df69af04373ef28caef3601befcaec1f909216"
-  version = "v1.2.3"
+  revision = "d1cc5451e933f39986bdc1069e9d26e534cde548"
+  version = "v1.2.5"
 
 [[projects]]
   branch = "master"
   name = "github.com/hashicorp/yamux"
   packages = ["."]
-  revision = "2658be15c5f05e76244154714161f17e3e77de2e"
+  revision = "cc6d2ea263b2471faabce371255777a365bf8306"
 
 [[projects]]
   name = "github.com/kr/fs"

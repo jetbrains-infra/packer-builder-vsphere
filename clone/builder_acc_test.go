@@ -5,8 +5,8 @@ import (
 	commonT "github.com/jetbrains-infra/packer-builder-vsphere/common/testing"
 
 	"github.com/hashicorp/packer/packer"
-	"testing"
 	"github.com/jetbrains-infra/packer-builder-vsphere/common"
+	"testing"
 )
 
 func TestCloneBuilderAcc_default(t *testing.T) {

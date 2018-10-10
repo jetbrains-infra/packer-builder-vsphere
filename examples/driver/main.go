@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/jetbrains-infra/packer-builder-vsphere/driver"
-	"fmt"
 	"context"
+	"fmt"
+	"github.com/jetbrains-infra/packer-builder-vsphere/driver"
 )
 
 func main() {
