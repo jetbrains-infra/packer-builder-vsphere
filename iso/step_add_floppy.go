@@ -75,24 +75,34 @@ func (s *StepAddFloppy) Cleanup(state multistep.StateBag) {
 	}
 
 	ui := state.Get("ui").(packer.Ui)
-
+	
+	stv := state.Get("vm")
+	if stv == nil {
+		return
+	}
+	vm := stv.(*driver.VirtualMachine)
+	
 	std := state.Get("driver")
 	if std == nil {
 		return
 	}
 	d := std.(*driver.Driver)
 
-	if UploadedFloppyPath, ok := state.GetOk("uploaded_floppy_path"); ok {
-		ui.Say("Deleting Floppy image ...")
 
-		ds, err := d.FindDatastore(s.Datastore, s.Host)
-		if err != nil {
-			state.Put("error", err)
-		}
+	ui.Say("Remove floppy image ...")
 
-		if err := ds.Delete(UploadedFloppyPath.(string)); err != nil {
-			state.Put("error", err)
-		}
+	ds, err := d.FindDatastore(s.Datastore, s.Host)
+	if err != nil {
+		state.Put("error", err)
+	}
+	vmDir, err := vm.GetDir()
+	if err != nil {
+		state.Put("error", err)
+	}
+
+	deletePath := fmt.Sprintf("%v/packer-tmp-created-floppy.flp", vmDir)
+	if err := ds.Delete(deletePath); err != nil {
+		state.Put("error", err)
 	}
 
 }
