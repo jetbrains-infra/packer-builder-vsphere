@@ -82,11 +82,13 @@ func (s *StepAddFloppy) Cleanup(state multistep.StateBag) {
 
 		ds, err := d.FindDatastore(s.Datastore, s.Host)
 		if err != nil {
+			state.Put("error", err)
 			return
 		}
 
 		err_del := ds.Delete(UploadedFloppyPath.(string))
 		if err_del != nil {
+			state.Put("error", err)
 			return
 		}
 
