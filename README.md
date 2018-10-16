@@ -17,6 +17,14 @@ This a plugin for [HashiCorp Packer](https://www.packer.io/). It uses native vSp
 * Download binaries from the [releases page](https://github.com/jetbrains-infra/packer-builder-vsphere/releases).
 * [Install](https://www.packer.io/docs/extending/plugins.html#installing-plugins) the plugins, or simply put them into the same directory with JSON templates. On Linux and macOS run `chmod +x` on the files.
 
+##Build
+
+Use docker and docker-compose
+```
+docker-compose run build
+```
+the binary will be in bin/ folder
+
 ## Examples
 
 See complete Ubuntu, Windows, and macOS templates in the [examples folder](https://github.com/jetbrains-infra/packer-builder-vsphere/tree/master/examples/).
