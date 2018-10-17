@@ -19,7 +19,7 @@ This a plugin for [HashiCorp Packer](https://www.packer.io/). It uses native vSp
 
 ## Build
 
-Install Go and [dep](), run `build.sh`.
+Install Go and [dep](https://github.com/golang/dep/releases), run `build.sh`.
 
 Or build inside a container by Docker Compose:
 ```
