@@ -17,13 +17,18 @@ This a plugin for [HashiCorp Packer](https://www.packer.io/). It uses native vSp
 * Download binaries from the [releases page](https://github.com/jetbrains-infra/packer-builder-vsphere/releases).
 * [Install](https://www.packer.io/docs/extending/plugins.html#installing-plugins) the plugins, or simply put them into the same directory with JSON templates. On Linux and macOS run `chmod +x` on the files.
 
-##Build
+## Build
 
-Use docker and docker-compose
+Install Go and [dep](), run `build.sh`.
+
+Or build inside a container by Docker Compose:
 ```
 docker-compose run build
 ```
-the binary will be in bin/ folder
+
+The binaries will be in `bin/` directory.
+
+Artifacts can be also downloaded from [TeamCity builds](https://teamcity.jetbrains.com/viewLog.html?buildTypeId=PackerVSphere_Build&buildId=lastSuccessful&tab=artifacts).
 
 ## Examples
 
