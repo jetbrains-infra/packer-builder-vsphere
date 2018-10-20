@@ -30,7 +30,7 @@ func (s *StepRun) Run(_ context.Context, state multistep.StateBag) multistep.Ste
 		}
 	} else {
 		if s.SetOrder {
-			ui.Say("Set boot order...")
+			ui.Say("Set boot order temporary...")
 			if err := vm.SetBootOrder([]string{"disk", "cdrom"}); err != nil {
 				state.Put("error", err)
 				return multistep.ActionHalt
@@ -52,7 +52,7 @@ func (s *StepRun) Cleanup(state multistep.StateBag) {
 	ui := state.Get("ui").(packer.Ui)
 	vm := state.Get("vm").(*driver.VirtualMachine)
 
-	if s.SetOrder {
+	if s.Config.BootOrder == "" && s.SetOrder {
 		ui.Say("Clear boot order...")
 		if err := vm.SetBootOrder([]string{"-"}); err != nil {
 			state.Put("error", err)
