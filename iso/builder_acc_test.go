@@ -350,7 +350,37 @@ func checkFull(t *testing.T) builderT.TestCheckFunc {
 
 		order := vmInfo.Config.BootOptions.BootOrder
 		if order != nil {
-			t.Errorf("Boot order is not empty")
+			t.Errorf("Boot order must be empty")
+		}
+
+		return nil
+	}
+}
+
+func TestISOBuilderAcc_bootOrder(t *testing.T) {
+	config := fullConfig()
+	config["boot_order"] = "disk,cdrom,floppy"
+
+	builderT.Test(t, builderT.TestCase{
+		Builder:  &Builder{},
+		Template: commonT.RenderConfig(config),
+		Check:    checkBootOrder(t),
+	})
+}
+
+func checkBootOrder(t *testing.T) builderT.TestCheckFunc {
+	return func(artifacts []packer.Artifact) error {
+		d := commonT.TestConn(t)
+		vm := commonT.GetVM(t, d, artifacts)
+
+		vmInfo, err := vm.Info("config.bootOptions")
+		if err != nil {
+			t.Fatalf("Cannot read VM properties: %v", err)
+		}
+
+		order := vmInfo.Config.BootOptions.BootOrder
+		if order == nil {
+			t.Errorf("Boot order must not be empty")
 		}
 
 		return nil
