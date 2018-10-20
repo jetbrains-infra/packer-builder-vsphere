@@ -309,7 +309,7 @@ func fullConfig() map[string]interface{} {
 			"[datastore1] ISO/ubuntu-16.04.3-server-amd64.iso",
 		},
 		"floppy_files": []string{
-			"./examples/ubuntu/preseed.cfg",
+			"preseed.cfg",
 		},
 
 		"boot_command": []string{
