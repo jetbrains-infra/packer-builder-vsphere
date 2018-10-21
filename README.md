@@ -136,10 +136,12 @@ Only use the `cluster` option. Optionally specify a `resource_pool`:
 
 ## Required vSphere Permissions
 Read only (without propagation) is required for:
+```
 vcenter -> datacenter -> cluster
 vcenter -> datacenter -> distributed switch
-
+```
 Required for any: resource pool, folder, distributed port group, datastore or storage cluster (with propagation) used in the builder:
+```
 Datastore ->Allocate space
 Datastore ->Browse datastore
 Datastore ->Low level file operations
@@ -155,3 +157,4 @@ Virtual machine -> Interaction
 Virtual machine -> Provisioning
 Virtual machine -> Service configuration
 Virtual machine -> Snapshot management
+```
