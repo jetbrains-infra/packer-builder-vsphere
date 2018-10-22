@@ -17,5 +17,4 @@ done
 
 exit $RETVAL
 
-
-go test -v ./driver ./iso ./clone
+go test -v -count 1 -timeout 20m ./driver ./iso ./clone

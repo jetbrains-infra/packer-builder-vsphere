@@ -17,6 +17,19 @@ This a plugin for [HashiCorp Packer](https://www.packer.io/). It uses native vSp
 * Download binaries from the [releases page](https://github.com/jetbrains-infra/packer-builder-vsphere/releases).
 * [Install](https://www.packer.io/docs/extending/plugins.html#installing-plugins) the plugins, or simply put them into the same directory with JSON templates. On Linux and macOS run `chmod +x` on the files.
 
+## Build
+
+Install Go and [dep](https://github.com/golang/dep/releases), run `build.sh`.
+
+Or build inside a container by Docker Compose:
+```
+docker-compose run build
+```
+
+The binaries will be in `bin/` directory.
+
+Artifacts can be also downloaded from [TeamCity builds](https://teamcity.jetbrains.com/viewLog.html?buildTypeId=PackerVSphere_Build&buildId=lastSuccessful&tab=artifacts).
+
 ## Examples
 
 See complete Ubuntu, Windows, and macOS templates in the [examples folder](https://github.com/jetbrains-infra/packer-builder-vsphere/tree/master/examples/).
@@ -69,6 +82,7 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 * `network`(string) - Set network VM will be connected to.
 * `network_card`(string) - Set VM network card type. Example `vmxnet3`.
 * `usb_controller`(boolean) - Create USB controller for virtual machine. Defaults to `false`.
+* `firmware`(string) - Set the Firmware at machine creation. Example `efi`. Defaults to `bios`
 
 ### Boot (`vsphere-iso` only)
 
@@ -81,7 +95,7 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 
 ### Provision
 
-* `communicator` - `ssh` (default), `winrm`, or `none`.
+* `communicator` - `ssh` (default), `winrm`, or `none` (create/clone, customize hardware, but do not boot).
 
 * `ssh_username`(string) - Username in guest OS.
 * `ssh_password`(string) - Password to access guest OS. Only specify `ssh_password` or `ssh_private_key_file`, but not both.
