@@ -204,6 +204,41 @@ func checkLimit(t *testing.T) builderT.TestCheckFunc {
 	}
 }
 
+func TestISOBuilderAcc_sata(t *testing.T) {
+	builderT.Test(t, builderT.TestCase{
+		Builder:  &Builder{},
+		Template: sataConfig(),
+		Check:    checkSata(t),
+	})
+}
+
+func sataConfig() string {
+	config := defaultConfig()
+	config["cdrom_type"] = "sata"
+
+	return commonT.RenderConfig(config)
+}
+
+func checkSata(t *testing.T) builderT.TestCheckFunc {
+	return func(artifacts []packer.Artifact) error {
+		d := commonT.TestConn(t)
+
+		vm := commonT.GetVM(t, d, artifacts)
+
+		l, err := vm.Devices()
+		if err != nil {
+			t.Fatalf("Cannot read VM devices: %v", err)
+		}
+
+		c := l.PickController((*types.VirtualAHCIController)(nil))
+		if c == nil {
+			t.Errorf("VM has no SATA controllers")
+		}
+
+		return nil
+	}
+}
+
 func TestISOBuilderAcc_cdrom(t *testing.T) {
 	builderT.Test(t, builderT.TestCase{
 		Builder:  &Builder{},
