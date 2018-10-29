@@ -166,6 +166,19 @@ func checkHardware(t *testing.T) builderT.TestCheckFunc {
 			t.Errorf("Invalid firmware: expected 'efi', got '%v'", fw)
 		}
 
+		l, err := vm.Devices()
+		if err != nil {
+			t.Fatalf("Cannot read VM devices: %v", err)
+		}
+		c := l.PickController((*types.VirtualIDEController)(nil))
+		if c == nil {
+			t.Errorf("VM should have IDE controller")
+		}
+		s := l.PickController((*types.VirtualAHCIController)(nil))
+		if s != nil {
+			t.Errorf("VM should have no SATA controllers")
+		}
+
 		return nil
 	}
 }
