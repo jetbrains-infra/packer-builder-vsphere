@@ -24,7 +24,16 @@
       "disk_size":        32768,
       "disk_thin_provisioned": true,
 
-      "network_card": "vmxnet3",
+      "networks":[
+        {
+          "network": "VM Network",
+          "network_card": "e1000e"
+        },
+        {
+          "network": "VM Network",
+          "network_card": "vmxnet3"
+        }
+      ],
 
       "iso_paths": [
         "[datastore1] ISO/ubuntu-16.04.3-server-amd64.iso"
