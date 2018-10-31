@@ -1,14 +1,16 @@
 package driver
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/vmware/govmomi/object"
+	"github.com/vmware/govmomi/property"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
-	"time"
+	"net"
 	"strings"
-	"context"
+	"time"
 )
 
 type VirtualMachine struct {
@@ -54,7 +56,7 @@ type CreateConfig struct {
 	Network       string // "" for default network
 	NetworkCard   string // example: vmxnet3
 	USBController bool
-	Version       uint // example: 10
+	Version       uint   // example: 10
 	Firmware      string // efi or bios
 }
 
@@ -337,8 +339,22 @@ func (vm *VirtualMachine) PowerOn() error {
 	return err
 }
 
-func (vm *VirtualMachine) WaitForIP(ctx context.Context) (string, error) {
-	return vm.vm.WaitForIP(ctx)
+func (vm *VirtualMachine) WaitForIP(ctx context.Context) (ip string, err error) {
+	collector := property.DefaultCollector(vm.vm.Client())
+	err = property.Wait(ctx, collector, vm.vm.Reference(), []string{"guest.ipAddress"}, func(pc []types.PropertyChange) bool {
+		for _, c := range pc {
+			if c.Name == "guest.ipAddress" && c.Op == types.PropertyChangeOpAssign && c.Val != nil {
+				ipCandidate := net.ParseIP(c.Val.(string))
+				if ipCandidate != nil && !ipCandidate.IsLinkLocalUnicast() {
+					ip = ipCandidate.String()
+					return true
+				}
+			}
+		}
+		return false
+	})
+
+	return
 }
 
 func (vm *VirtualMachine) PowerOff() error {
