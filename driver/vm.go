@@ -38,6 +38,11 @@ type HardwareConfig struct {
 	MemoryHotAddEnabled bool
 }
 
+type NetworkConfig struct{
+	Network       string
+	NetworkCard   string
+}
+
 type CreateConfig struct {
 	DiskThinProvisioned bool
 	DiskControllerType  string // example: "scsi", "pvscsi"
@@ -53,6 +58,10 @@ type CreateConfig struct {
 	GuestOS       string // example: otherGuest
 	Network       string // "" for default network
 	NetworkCard   string // example: vmxnet3
+
+	//Networks      []interface{}
+	Networks      []NetworkConfig
+
 	USBController bool
 	Version       uint // example: 10
 	Firmware      string // efi or bios
@@ -123,7 +132,11 @@ func (d *Driver) CreateVM(config *CreateConfig) (*VirtualMachine, error) {
 	if err != nil {
 		return nil, err
 	}
-	devices, err = addNetwork(d, devices, config)
+	//devices, err = addNetwork(d, devices, config)
+	//if err != nil {
+	//	return nil, err
+	//}
+	devices, err = addNetworks(d, devices, config)
 	if err != nil {
 		return nil, err
 	}
@@ -449,10 +462,26 @@ func addDisk(_ *Driver, devices object.VirtualDeviceList, config *CreateConfig) 
 }
 
 func addNetwork(d *Driver, devices object.VirtualDeviceList, config *CreateConfig) (object.VirtualDeviceList, error) {
-	network, err := d.finder.NetworkOrDefault(d.ctx, config.Network)
-	if err != nil {
-		return nil, err
+	//network, err := d.finder.NetworkOrDefault(d.ctx, config.Network)
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	// Remove multiple instances error
+	var networks []object.NetworkReference
+	var err error
+	if config.Network != "" {
+		networks, err = d.finder.NetworkList(d.ctx, config.Network)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		networks, err = d.finder.NetworkList(d.ctx, "*")
+		if err != nil {
+			return nil, err
+		}
 	}
+	network := networks[0]
 
 	backing, err := network.EthernetCardBackingInfo(d.ctx)
 	if err != nil {
@@ -465,6 +494,33 @@ func addNetwork(d *Driver, devices object.VirtualDeviceList, config *CreateConfi
 	}
 
 	return append(devices, device), nil
+}
+
+func addNetworks(d *Driver, devices object.VirtualDeviceList, config *CreateConfig) (object.VirtualDeviceList, error) {
+	for _, c := range config.Networks {
+		networks, err := d.finder.NetworkList(d.ctx, c.Network)
+		if err != nil {
+			return nil, err
+		}
+
+		//return nil, errors.New(fmt.Sprintf("%d @ %s", len(networks), networks[0].Reference()))
+
+		network := networks[0]
+
+		backing, err := network.EthernetCardBackingInfo(d.ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		device, err := object.EthernetCardTypes().CreateEthernetCard(c.NetworkCard, backing)
+		if err != nil {
+			return nil, err
+		}
+
+		devices = append(devices, device)
+	}
+
+	return devices, nil
 }
 
 func addIDE(devices object.VirtualDeviceList) (object.VirtualDeviceList, error) {
