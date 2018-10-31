@@ -9,6 +9,11 @@ import (
 	"context"
 )
 
+type Network struct {
+	Network       string `mapstructure:"network"`
+	NetworkCard   string `mapstructure:"network_card"`
+}
+
 type CreateConfig struct {
 	Version     uint   `mapstructure:"vm_version"`
 	GuestOSType string `mapstructure:"guest_os_type"`
@@ -20,7 +25,25 @@ type CreateConfig struct {
 
 	Network       string `mapstructure:"network"`
 	NetworkCard   string `mapstructure:"network_card"`
+
+	Networks []Network `mapstructure:"networks"`
+
 	USBController bool   `mapstructure:"usb_controller"`
+}
+
+func ToNetworkConfig(o []Network) []driver.NetworkConfig {
+	var net []driver.NetworkConfig
+
+	if o != nil {
+		for _, item := range o {
+			n := driver.NetworkConfig{
+				Network: item.Network,
+				NetworkCard: item.NetworkCard,
+			}
+			net = append(net, n)
+		}
+	}
+	return net
 }
 
 func (c *CreateConfig) Prepare() []error {
@@ -55,6 +78,7 @@ func (s *StepCreateVM) Run(_ context.Context, state multistep.StateBag) multiste
 		DiskThinProvisioned: s.Config.DiskThinProvisioned,
 		DiskControllerType:  s.Config.DiskControllerType,
 		DiskSize:            s.Config.DiskSize,
+		Annotation:          "",
 		Name:                s.Location.VMName,
 		Folder:              s.Location.Folder,
 		Cluster:             s.Location.Cluster,
@@ -64,6 +88,8 @@ func (s *StepCreateVM) Run(_ context.Context, state multistep.StateBag) multiste
 		GuestOS:             s.Config.GuestOSType,
 		Network:             s.Config.Network,
 		NetworkCard:         s.Config.NetworkCard,
+
+		Networks:            ToNetworkConfig(s.Config.Networks),
 		USBController:       s.Config.USBController,
 		Version:             s.Config.Version,
 		Firmware:            s.Config.Firmware,
