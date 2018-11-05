@@ -1,12 +1,12 @@
 package clone
 
 import (
+	"context"
+	"fmt"
 	"github.com/hashicorp/packer/helper/multistep"
 	"github.com/hashicorp/packer/packer"
-	"fmt"
-	"github.com/jetbrains-infra/packer-builder-vsphere/driver"
 	"github.com/jetbrains-infra/packer-builder-vsphere/common"
-	"context"
+	"github.com/jetbrains-infra/packer-builder-vsphere/driver"
 )
 
 type CloneConfig struct {
@@ -34,7 +34,7 @@ type StepCloneVM struct {
 	Location *common.LocationConfig
 }
 
-func (s *StepCloneVM) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
+func (s *StepCloneVM) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	d := state.Get("driver").(*driver.Driver)
 
@@ -46,18 +46,21 @@ func (s *StepCloneVM) Run(_ context.Context, state multistep.StateBag) multistep
 		return multistep.ActionHalt
 	}
 
-	vm, err := template.Clone(&driver.CloneConfig{
-		Name:              s.Location.VMName,
-		Folder:            s.Location.Folder,
-		Cluster:           s.Location.Cluster,
-		Host:              s.Location.Host,
-		ResourcePool:      s.Location.ResourcePool,
-		Datastore:         s.Location.Datastore,
+	vm, err := template.Clone(ctx, &driver.CloneConfig{
+		Name:         s.Location.VMName,
+		Folder:       s.Location.Folder,
+		Cluster:      s.Location.Cluster,
+		Host:         s.Location.Host,
+		ResourcePool: s.Location.ResourcePool,
+		Datastore:    s.Location.Datastore,
 		Datastorecluster:  s.Location.Datastorecluster,
 		LinkedClone:  s.Config.LinkedClone,
 	})
 	if err != nil {
 		state.Put("error", err)
+		return multistep.ActionHalt
+	}
+	if vm == nil {
 		return multistep.ActionHalt
 	}
 	state.Put("vm", vm)

@@ -1,21 +1,21 @@
 package common
 
 import (
+	"bytes"
+	"context"
+	"fmt"
 	"github.com/hashicorp/packer/helper/multistep"
 	"github.com/hashicorp/packer/packer"
-	"fmt"
+	"github.com/jetbrains-infra/packer-builder-vsphere/driver"
 	"log"
 	"time"
-	"bytes"
-	"github.com/jetbrains-infra/packer-builder-vsphere/driver"
-	"context"
 )
 
 type ShutdownConfig struct {
 	Command    string `mapstructure:"shutdown_command"`
 	RawTimeout string `mapstructure:"shutdown_timeout"`
 
-	Timeout    time.Duration
+	Timeout time.Duration
 }
 
 func (c *ShutdownConfig) Prepare() []error {
@@ -39,7 +39,7 @@ type StepShutdown struct {
 	Config *ShutdownConfig
 }
 
-func (s *StepShutdown) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
+func (s *StepShutdown) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	comm := state.Get("communicator").(packer.Communicator)
 	vm := state.Get("vm").(*driver.VirtualMachine)
@@ -70,7 +70,7 @@ func (s *StepShutdown) Run(_ context.Context, state multistep.StateBag) multiste
 	}
 
 	log.Printf("Waiting max %s for shutdown to complete", s.Config.Timeout)
-	err := vm.WaitForShutdown(s.Config.Timeout)
+	err := vm.WaitForShutdown(ctx, s.Config.Timeout)
 	if err != nil {
 		state.Put("error", err)
 		return multistep.ActionHalt

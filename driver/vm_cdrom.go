@@ -1,8 +1,8 @@
 package driver
 
 import (
-	"github.com/vmware/govmomi/vim25/types"
 	"errors"
+	"github.com/vmware/govmomi/vim25/types"
 )
 
 func (vm *VirtualMachine) AddSATAController() error {
@@ -24,7 +24,7 @@ func (vm *VirtualMachine) FindSATAController() (*types.VirtualAHCIController, er
 	return c.(*types.VirtualAHCIController), nil
 }
 
-func (vm *VirtualMachine) CreateCdrom(c *types.VirtualAHCIController) (*types.VirtualCdrom, error) {
+func (vm *VirtualMachine) CreateCdrom(c *types.VirtualController) (*types.VirtualCdrom, error) {
 	l, err := vm.Devices()
 	if err != nil {
 		return nil, err
@@ -45,4 +45,23 @@ func (vm *VirtualMachine) CreateCdrom(c *types.VirtualAHCIController) (*types.Vi
 	}
 
 	return device, nil
+}
+
+func (vm *VirtualMachine) EjectCdroms() error {
+	devices, err := vm.Devices()
+	if err != nil {
+		return err
+	}
+	cdroms := devices.SelectByType((*types.VirtualCdrom)(nil))
+	for _, cd := range cdroms {
+		c := cd.(*types.VirtualCdrom)
+		c.Backing = &types.VirtualCdromRemotePassthroughBackingInfo{}
+		c.Connectable = &types.VirtualDeviceConnectInfo{}
+		err := vm.vm.EditDevice(vm.driver.ctx, c)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

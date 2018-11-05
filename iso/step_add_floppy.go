@@ -1,11 +1,11 @@
 package iso
 
 import (
+	"context"
+	"fmt"
 	"github.com/hashicorp/packer/helper/multistep"
 	"github.com/hashicorp/packer/packer"
 	"github.com/jetbrains-infra/packer-builder-vsphere/driver"
-	"fmt"
-	"context"
 )
 
 type FloppyConfig struct {
@@ -25,8 +25,7 @@ func (s *StepAddFloppy) Run(_ context.Context, state multistep.StateBag) multist
 	vm := state.Get("vm").(*driver.VirtualMachine)
 	d := state.Get("driver").(*driver.Driver)
 
-	tmpFloppy := state.Get("floppy_path").(string)
-	if tmpFloppy != "" {
+	if floppyPath, ok := state.GetOk("floppy_path"); ok {
 		ui.Say("Uploading created floppy image")
 
 		ds, err := d.FindDatastore(s.Datastore, s.Host)
@@ -41,7 +40,7 @@ func (s *StepAddFloppy) Run(_ context.Context, state multistep.StateBag) multist
 		}
 
 		uploadPath := fmt.Sprintf("%v/packer-tmp-created-floppy.flp", vmDir)
-		if err := ds.UploadFile(tmpFloppy, uploadPath); err != nil {
+		if err := ds.UploadFile(floppyPath.(string), uploadPath); err != nil {
 			state.Put("error", err)
 			return multistep.ActionHalt
 		}
@@ -68,4 +67,30 @@ func (s *StepAddFloppy) Run(_ context.Context, state multistep.StateBag) multist
 	return multistep.ActionContinue
 }
 
-func (s *StepAddFloppy) Cleanup(state multistep.StateBag) {}
+func (s *StepAddFloppy) Cleanup(state multistep.StateBag) {
+	_, cancelled := state.GetOk(multistep.StateCancelled)
+	_, halted := state.GetOk(multistep.StateHalted)
+	if !cancelled && !halted {
+		return
+	}
+
+	ui := state.Get("ui").(packer.Ui)
+	d := state.Get("driver").(*driver.Driver)
+
+	if UploadedFloppyPath, ok := state.GetOk("uploaded_floppy_path"); ok {
+		ui.Say("Deleting Floppy image ...")
+
+		ds, err := d.FindDatastore(s.Datastore, s.Host)
+		if err != nil {
+			state.Put("error", err)
+			return
+		}
+
+		err_del := ds.Delete(UploadedFloppyPath.(string))
+		if err_del != nil {
+			state.Put("error", err)
+			return
+		}
+
+	}
+}

@@ -3,10 +3,10 @@ package iso
 import (
 	packerCommon "github.com/hashicorp/packer/common"
 	"github.com/hashicorp/packer/helper/communicator"
+	"github.com/hashicorp/packer/helper/config"
 	"github.com/hashicorp/packer/packer"
 	"github.com/hashicorp/packer/template/interpolate"
 	"github.com/jetbrains-infra/packer-builder-vsphere/common"
-	"github.com/hashicorp/packer/helper/config"
 )
 
 type Config struct {
@@ -18,12 +18,12 @@ type Config struct {
 	common.HardwareConfig     `mapstructure:",squash"`
 	common.ConfigParamsConfig `mapstructure:",squash"`
 
-	CDRomConfig              `mapstructure:",squash"`
-	FloppyConfig             `mapstructure:",squash"`
-	common.RunConfig         `mapstructure:",squash"`
-	BootConfig               `mapstructure:",squash"`
-	Comm communicator.Config `mapstructure:",squash"`
-	common.ShutdownConfig    `mapstructure:",squash"`
+	CDRomConfig           `mapstructure:",squash"`
+	FloppyConfig          `mapstructure:",squash"`
+	common.RunConfig      `mapstructure:",squash"`
+	BootConfig            `mapstructure:",squash"`
+	Comm                  communicator.Config `mapstructure:",squash"`
+	common.ShutdownConfig `mapstructure:",squash"`
 
 	CreateSnapshot    bool `mapstructure:"create_snapshot"`
 	ConvertToTemplate bool `mapstructure:"convert_to_template"`
@@ -47,7 +47,7 @@ func NewConfig(raws ...interface{}) (*Config, []string, error) {
 	errs = packer.MultiErrorAppend(errs, c.LocationConfig.Prepare()...)
 	errs = packer.MultiErrorAppend(errs, c.HardwareConfig.Prepare()...)
 
-	errs = packer.MultiErrorAppend(errs, c.RunConfig.Prepare()...)
+	errs = packer.MultiErrorAppend(errs, c.CDRomConfig.Prepare()...)
 	errs = packer.MultiErrorAppend(errs, c.BootConfig.Prepare()...)
 	errs = packer.MultiErrorAppend(errs, c.Comm.Prepare(&c.ctx)...)
 	errs = packer.MultiErrorAppend(errs, c.ShutdownConfig.Prepare()...)

@@ -1,6 +1,7 @@
 package driver
 
 import (
+	"context"
 	"log"
 	"net"
 	"testing"
@@ -38,7 +39,7 @@ func TestVMAcc_clone(t *testing.T) {
 			}
 
 			log.Printf("[DEBUG] Clonning VM")
-			vm, err := template.Clone(tc.config)
+			vm, err := template.Clone(context.TODO(), tc.config)
 			if err != nil {
 				t.Fatalf("Cannot clone vm '%v': %v", templateName, err)
 			}
@@ -134,12 +135,12 @@ func configureCheck(t *testing.T, vm *VirtualMachine, _ *CloneConfig) {
 		t.Errorf("VM should have %v CPU sockets, got %v", hwConfig.CPUs, cpuSockets)
 	}
 
-	cpuReservation := vmInfo.Config.CpuAllocation.GetResourceAllocationInfo().Reservation
+	cpuReservation := *vmInfo.Config.CpuAllocation.Reservation
 	if cpuReservation != hwConfig.CPUReservation {
 		t.Errorf("VM should have CPU reservation for %v Mhz, got %v", hwConfig.CPUReservation, cpuReservation)
 	}
 
-	cpuLimit := vmInfo.Config.CpuAllocation.GetResourceAllocationInfo().Limit
+	cpuLimit := *vmInfo.Config.CpuAllocation.Limit
 	if cpuLimit != hwConfig.CPULimit {
 		t.Errorf("VM should have CPU reservation for %v Mhz, got %v", hwConfig.CPULimit, cpuLimit)
 	}
@@ -149,7 +150,7 @@ func configureCheck(t *testing.T, vm *VirtualMachine, _ *CloneConfig) {
 		t.Errorf("VM should have %v MB of RAM, got %v", hwConfig.RAM, ram)
 	}
 
-	ramReservation := vmInfo.Config.MemoryAllocation.GetResourceAllocationInfo().Reservation
+	ramReservation := *vmInfo.Config.MemoryAllocation.Reservation
 	if ramReservation != hwConfig.RAMReservation {
 		t.Errorf("VM should have RAM reservation for %v MB, got %v", hwConfig.RAMReservation, ramReservation)
 	}
@@ -167,7 +168,7 @@ func configureCheck(t *testing.T, vm *VirtualMachine, _ *CloneConfig) {
 
 func configureRAMReserveAllCheck(t *testing.T, vm *VirtualMachine, _ *CloneConfig) {
 	log.Printf("[DEBUG] Configuring the vm")
-	vm.Configure(&HardwareConfig{ RAMReserveAll: true })
+	vm.Configure(&HardwareConfig{RAMReserveAll: true})
 
 	log.Printf("[DEBUG] Running checks")
 	vmInfo, err := vm.Info("config")
@@ -227,7 +228,7 @@ func startAndStopCheck(t *testing.T, vm *VirtualMachine, config *CloneConfig) {
 	stopper := startVM(t, vm, config.Name)
 	defer stopper()
 
-	switch ip, err := vm.WaitForIP(); {
+	switch ip, err := vm.WaitForIP(context.TODO()); {
 	case err != nil:
 		t.Errorf("Cannot obtain IP address from created vm '%v': %v", config.Name, err)
 	case net.ParseIP(ip) == nil:
@@ -236,7 +237,7 @@ func startAndStopCheck(t *testing.T, vm *VirtualMachine, config *CloneConfig) {
 
 	vm.StartShutdown()
 	log.Printf("[DEBUG] Waiting max 1m0s for shutdown to complete")
-	vm.WaitForShutdown(1 * time.Minute)
+	vm.WaitForShutdown(context.TODO(), 1*time.Minute)
 }
 
 func snapshotCheck(t *testing.T, vm *VirtualMachine, config *CloneConfig) {

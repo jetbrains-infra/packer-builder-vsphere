@@ -1,13 +1,14 @@
 package driver
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
-	"time"
 	"strings"
+	"time"
 )
 
 type VirtualMachine struct {
@@ -43,19 +44,20 @@ type CreateConfig struct {
 	DiskControllerType  string // example: "scsi", "pvscsi"
 	DiskSize            int64
 
-	Annotation       string
-	Name             string
-	Folder           string
-	Cluster          string
-	Host             string
-	ResourcePool     string
-	Datastore        string
+	Annotation    string
+	Name          string
+	Folder        string
+	Cluster       string
+	Host          string
+	ResourcePool  string
+	Datastore     string
 	Datastorecluster string
-	GuestOS          string // example: otherGuest
-	Network          string // "" for default network
-	NetworkCard      string // example: vmxnet3
-	USBController    bool
-	Version          uint // example: 10
+	GuestOS       string // example: otherGuest
+	Network       string // "" for default network
+	NetworkCard   string // example: vmxnet3
+	USBController bool
+	Version       uint   // example: 10
+	Firmware      string // efi or bios
 }
 
 func (d *Driver) NewVM(ref *types.ManagedObjectReference) *VirtualMachine {
@@ -85,6 +87,9 @@ func (d *Driver) CreateVM(config *CreateConfig) (*VirtualMachine, error) {
 	if config.Version != 0 {
 		createSpec.Version = fmt.Sprintf("%s%d", "vmx-", config.Version)
 	}
+	if config.Firmware != "" {
+		createSpec.Firmware = config.Firmware
+	}
 
 	folder, err := d.FindFolder(config.Folder)
 	if err != nil {
@@ -97,7 +102,7 @@ func (d *Driver) CreateVM(config *CreateConfig) (*VirtualMachine, error) {
 	}
 
 	var host *object.HostSystem
-	if config.Host != "" {
+	if config.Cluster != "" && config.Host != "" {
 		h, err := d.FindHost(config.Host)
 		if err != nil {
 			return nil, err
@@ -122,10 +127,6 @@ func (d *Driver) CreateVM(config *CreateConfig) (*VirtualMachine, error) {
 
 	devices := object.VirtualDeviceList{}
 
-	devices, err = addIDE(devices)
-	if err != nil {
-		return nil, err
-	}
 	devices, err = addDisk(d, devices, config)
 	if err != nil {
 		return nil, err
@@ -198,10 +199,7 @@ func (vm *VirtualMachine) Devices() (object.VirtualDeviceList, error) {
 	return vmInfo.Config.Hardware.Device, nil
 }
 
-func (template *VirtualMachine) Clone(config *CloneConfig) (*VirtualMachine, error) {
-
-	var relocateSpec types.VirtualMachineRelocateSpec
-
+func (template *VirtualMachine) Clone(ctx context.Context, config *CloneConfig) (*VirtualMachine, error) {
 	folder, err := template.driver.FindFolder(config.Folder)
 	if err != nil {
 		return nil, err
@@ -264,8 +262,13 @@ func (template *VirtualMachine) Clone(config *CloneConfig) (*VirtualMachine, err
 		return nil, err
 	}
 
-	info, err := task.WaitForResult(template.driver.ctx, nil)
+	info, err := task.WaitForResult(ctx, nil)
 	if err != nil {
+		if ctx.Err() == context.Canceled {
+			err = task.Cancel(context.TODO())
+			return nil, err
+		}
+
 		return nil, err
 	}
 
@@ -289,12 +292,14 @@ func (vm *VirtualMachine) Configure(config *HardwareConfig) error {
 	confSpec.MemoryMB = config.RAM
 
 	var cpuSpec types.ResourceAllocationInfo
-	cpuSpec.Reservation = config.CPUReservation
-	cpuSpec.Limit = config.CPULimit
+	cpuSpec.Reservation = &config.CPUReservation
+	if config.CPULimit != 0 {
+		cpuSpec.Limit = &config.CPULimit
+	}
 	confSpec.CpuAllocation = &cpuSpec
 
 	var ramSpec types.ResourceAllocationInfo
-	ramSpec.Reservation = config.RAMReservation
+	ramSpec.Reservation = &config.RAMReservation
 	confSpec.MemoryAllocation = &ramSpec
 
 	confSpec.MemoryReservationLockedToMax = &config.RAMReserveAll
@@ -370,8 +375,8 @@ func (vm *VirtualMachine) PowerOn() error {
 	return err
 }
 
-func (vm *VirtualMachine) WaitForIP() (string, error) {
-	return vm.vm.WaitForIP(vm.driver.ctx)
+func (vm *VirtualMachine) WaitForIP(ctx context.Context) (string, error) {
+	return vm.vm.WaitForIP(ctx)
 }
 
 func (vm *VirtualMachine) PowerOff() error {
@@ -397,7 +402,7 @@ func (vm *VirtualMachine) StartShutdown() error {
 	return err
 }
 
-func (vm *VirtualMachine) WaitForShutdown(timeout time.Duration) error {
+func (vm *VirtualMachine) WaitForShutdown(ctx context.Context, timeout time.Duration) error {
 	shutdownTimer := time.After(timeout)
 	for {
 		powerState, err := vm.vm.PowerState(vm.driver.ctx)
@@ -412,6 +417,8 @@ func (vm *VirtualMachine) WaitForShutdown(timeout time.Duration) error {
 		case <-shutdownTimer:
 			err := errors.New("Timeout while waiting for machine to shut down.")
 			return err
+		case <-ctx.Done():
+			return nil
 		default:
 			time.Sleep(1 * time.Second)
 		}
@@ -476,9 +483,29 @@ func addDisk(_ *Driver, devices object.VirtualDeviceList, config *CreateConfig) 
 }
 
 func addNetwork(d *Driver, devices object.VirtualDeviceList, config *CreateConfig) (object.VirtualDeviceList, error) {
-	network, err := d.finder.NetworkOrDefault(d.ctx, config.Network)
-	if err != nil {
-		return nil, err
+	var network object.NetworkReference
+	if config.Network == "" {
+		h, err := d.FindHost(config.Host)
+		if err != nil {
+			return nil, err
+		}
+
+		i, err := h.Info("network")
+		if err != nil {
+			return nil, err
+		}
+
+		if len(i.Network) > 1 {
+			return nil, fmt.Errorf("Host has multiple networks. Specify it explicitly")
+		}
+
+		network = object.NewNetwork(d.client.Client, i.Network[0])
+	} else {
+		var err error
+		network, err = d.finder.Network(d.ctx, config.Network)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	backing, err := network.EthernetCardBackingInfo(d.ctx)
@@ -504,23 +531,34 @@ func addIDE(devices object.VirtualDeviceList) (object.VirtualDeviceList, error) 
 	return devices, nil
 }
 
-func (vm *VirtualMachine) AddCdrom(isoPath string) error {
+func (vm *VirtualMachine) AddCdrom(controllerType string, isoPath string) error {
 	devices, err := vm.vm.Device(vm.driver.ctx)
 	if err != nil {
 		return err
 	}
-	sata, err := vm.FindSATAController()
-	if err != nil {
-		return err
+
+	var controller *types.VirtualController
+	if controllerType == "sata" {
+		c, err := vm.FindSATAController()
+		if err != nil {
+			return err
+		}
+		controller = c.GetVirtualController()
+	} else {
+		c, err := devices.FindIDEController("")
+		if err != nil {
+			return err
+		}
+		controller = c.GetVirtualController()
 	}
 
-	cdrom, err := vm.CreateCdrom(sata)
+	cdrom, err := vm.CreateCdrom(controller)
 	if err != nil {
 		return err
 	}
 
 	if isoPath != "" {
-		cdrom = devices.InsertIso(cdrom, isoPath)
+		devices.InsertIso(cdrom, isoPath)
 	}
 
 	return vm.addDevice(cdrom)

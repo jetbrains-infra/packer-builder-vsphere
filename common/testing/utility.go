@@ -1,15 +1,14 @@
 package testing
 
 import (
-	"fmt"
-	"math/rand"
-	"time"
 	"encoding/json"
+	"fmt"
 	"github.com/hashicorp/packer/packer"
-	"github.com/jetbrains-infra/packer-builder-vsphere/driver"
-	"testing"
 	"github.com/jetbrains-infra/packer-builder-vsphere/common"
-	"context"
+	"github.com/jetbrains-infra/packer-builder-vsphere/driver"
+	"math/rand"
+	"testing"
+	"time"
 )
 
 func NewVMName() string {
@@ -33,9 +32,8 @@ func RenderConfig(config map[string]interface{}) string {
 	return string(j)
 }
 
-
 func TestConn(t *testing.T) *driver.Driver {
-	d, err := driver.NewDriver(context.TODO(), &driver.ConnectConfig{
+	d, err := driver.NewDriver(&driver.ConnectConfig{
 		VCenterServer:      "vcenter.vsphere65.test",
 		Username:           "root",
 		Password:           "jetbrains",
@@ -58,4 +56,3 @@ func GetVM(t *testing.T, d *driver.Driver, artifacts []packer.Artifact) *driver.
 
 	return vm
 }
-
