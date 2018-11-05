@@ -53,6 +53,7 @@ func (s *StepCloneVM) Run(ctx context.Context, state multistep.StateBag) multist
 		Host:         s.Location.Host,
 		ResourcePool: s.Location.ResourcePool,
 		Datastore:    s.Location.Datastore,
+		Datastorecluster:  s.Location.Datastorecluster,
 		LinkedClone:  s.Config.LinkedClone,
 	})
 	if err != nil {

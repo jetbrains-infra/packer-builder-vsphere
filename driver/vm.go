@@ -17,13 +17,14 @@ type VirtualMachine struct {
 }
 
 type CloneConfig struct {
-	Name         string
-	Folder       string
-	Cluster      string
-	Host         string
-	ResourcePool string
-	Datastore    string
-	LinkedClone  bool
+	Name             string
+	Folder           string
+	Cluster          string
+	Host             string
+	ResourcePool     string
+	Datastore        string
+	Datastorecluster string
+	LinkedClone      bool
 }
 
 type HardwareConfig struct {
@@ -50,6 +51,7 @@ type CreateConfig struct {
 	Host          string
 	ResourcePool  string
 	Datastore     string
+	Datastorecluster string
 	GuestOS       string // example: otherGuest
 	Network       string // "" for default network
 	NetworkCard   string // example: vmxnet3
@@ -108,9 +110,19 @@ func (d *Driver) CreateVM(config *CreateConfig) (*VirtualMachine, error) {
 		host = h.host
 	}
 
-	datastore, err := d.FindDatastore(config.Datastore, config.Host)
-	if err != nil {
-		return nil, err
+	var datastore *Datastore
+	var datastorecluster *Datastorecluster
+
+	if config.Datastorecluster != ""{
+		datastorecluster, err = d.FindDatastorecluster(config.Datastorecluster)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		datastore, err = d.FindDatastore(config.Datastore, config.Host)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	devices := object.VirtualDeviceList{}
@@ -135,6 +147,14 @@ func (d *Driver) CreateVM(config *CreateConfig) (*VirtualMachine, error) {
 	createSpec.DeviceChange, err = devices.ConfigSpec(types.VirtualDeviceConfigSpecOperationAdd)
 	if err != nil {
 		return nil, err
+	}
+
+	//get recommendation of datastore inside datastorecluster for placement of VM
+	if datastorecluster != nil  {
+		datastore, err = d.recommendDatastoreCreate(datastorecluster, resourcePool, &createSpec)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	createSpec.Files = &types.VirtualMachineFileInfo{
@@ -184,8 +204,8 @@ func (template *VirtualMachine) Clone(ctx context.Context, config *CloneConfig) 
 	if err != nil {
 		return nil, err
 	}
-
-	var relocateSpec types.VirtualMachineRelocateSpec
+	folderRef := folder.folder.Reference()
+	relocateSpec.Folder = &folderRef
 
 	pool, err := template.driver.FindResourcePool(config.Cluster, config.Host, config.ResourcePool)
 	if err != nil {
@@ -194,15 +214,9 @@ func (template *VirtualMachine) Clone(ctx context.Context, config *CloneConfig) 
 	poolRef := pool.pool.Reference()
 	relocateSpec.Pool = &poolRef
 
-	datastore, err := template.driver.FindDatastore(config.Datastore, config.Host)
-	if err != nil {
-		return nil, err
-	}
-	datastoreRef := datastore.ds.Reference()
-	relocateSpec.Datastore = &datastoreRef
-
 	var cloneSpec types.VirtualMachineCloneSpec
 	cloneSpec.Location = relocateSpec
+
 	cloneSpec.PowerOn = false
 
 	if config.LinkedClone == true {
@@ -218,6 +232,30 @@ func (template *VirtualMachine) Clone(ctx context.Context, config *CloneConfig) 
 		}
 		cloneSpec.Snapshot = tpl.Snapshot.CurrentSnapshot
 	}
+
+	vmRefPreClone := template.vm.Reference()
+
+	var datastore *Datastore
+	if config.Datastorecluster != "" {
+		dsc, err := template.driver.FindDatastorecluster(config.Datastorecluster)
+		if err != nil {
+			return nil, err
+		}
+		ds, err := template.driver.recommendDatastoreClone(dsc, &vmRefPreClone, config.Name, &cloneSpec)
+		if err != nil {
+			return nil, err
+		}
+		datastore = ds
+	} else {
+		ds, err := template.driver.FindDatastore(config.Datastore, config.Host)
+		if err != nil {
+			return nil, err
+		}
+		datastore = ds
+	}
+
+	datastoreRef := datastore.ds.Reference()
+	cloneSpec.Location.Datastore = &datastoreRef
 
 	task, err := template.vm.Clone(template.driver.ctx, folder.folder, config.Name, cloneSpec)
 	if err != nil {
@@ -599,4 +637,116 @@ func (vm *VirtualMachine) AddConfigParams(params map[string]string) error {
 
 	_, err = task.WaitForResult(vm.driver.ctx, nil)
 	return err
+}
+
+func (d *Driver) recommendDatastoreCreate(dsc *Datastorecluster, pool *ResourcePool, spec *types.VirtualMachineConfigSpec) (*Datastore, error){
+	sp := dsc.dsc.Reference()
+
+	podSelectionSpec := types.StorageDrsPodSelectionSpec{
+		StoragePod: &sp,
+	}
+
+	var disks []*types.VirtualDisk
+
+	for _, deviceConfigSpec := range spec.DeviceChange {
+		s := deviceConfigSpec.GetVirtualDeviceConfigSpec()
+
+		if s.Operation != types.VirtualDeviceConfigSpecOperationAdd {
+			continue
+		}
+
+		if s.FileOperation != types.VirtualDeviceConfigSpecFileOperationCreate {
+			continue
+		}
+
+		d, ok := s.Device.(*types.VirtualDisk)
+		if !ok {
+			continue
+		}
+
+		podConfigForPlacement := types.VmPodConfigForPlacement{
+			StoragePod: sp,
+			Disk: []types.PodDiskLocator{
+				{
+					DiskId:          d.Key,
+					DiskBackingInfo: d.Backing,
+				},
+			},
+		}
+
+		podSelectionSpec.InitialVmConfig = append(podSelectionSpec.InitialVmConfig, podConfigForPlacement)
+		disks = append(disks, d)
+	}
+
+	sps := types.StoragePlacementSpec{
+		Type:             string(types.StoragePlacementSpecPlacementTypeCreate),
+		ResourcePool:     types.NewReference(pool.pool.Reference()),
+		PodSelectionSpec: podSelectionSpec,
+		ConfigSpec:       spec,
+	}
+
+	srm := object.NewStorageResourceManager(d.client.Client)
+	result, err := srm.RecommendDatastores(d.ctx, sps)
+	if err != nil {
+		return nil, err
+	}
+
+	recs := result.Recommendations
+	if len(recs) == 0 {
+		return nil, fmt.Errorf("no recommendations for datastore inside datastorecluster: '%v'", dsc.dsc.Name())
+	}
+
+	rds := recs[0].Action[0].(*types.StoragePlacementAction).Destination
+
+	for _, disk := range disks {
+		backing := disk.Backing.(*types.VirtualDiskFlatVer2BackingInfo)
+		backing.Datastore = &rds
+	}
+
+	ds := d.NewDatastore(&rds)
+	dsInfo, err := ds.Info("name")
+	if err != nil {
+		return nil, err
+	}
+	ds.ds.InventoryPath = dsInfo.Name
+
+	return ds, nil
+}
+
+func (d *Driver) recommendDatastoreClone(dsc *Datastorecluster, vmRef *types.ManagedObjectReference, cloneName string, spec *types.VirtualMachineCloneSpec) (*Datastore, error){
+	sp := dsc.dsc.Reference()
+
+	// create podSelectionSpec to be used in StoragePlacementSpecs
+	podSelectionSpec := types.StorageDrsPodSelectionSpec{
+		StoragePod: &sp,
+	}
+
+	sps := types.StoragePlacementSpec{
+		Type:             string(types.StoragePlacementSpecPlacementTypeClone),
+		Vm:               vmRef,
+		CloneName:        cloneName,
+		ResourcePool:     spec.Location.Pool,
+		Folder:           spec.Location.Folder,
+		PodSelectionSpec: podSelectionSpec,
+		CloneSpec:        spec,
+	}
+
+	srm := object.NewStorageResourceManager(d.client.Client)
+	result, err := srm.RecommendDatastores(d.ctx, sps)
+	if err != nil {
+		return nil, err
+	}
+
+	recs := result.Recommendations
+	if len(recs) == 0 {
+		return nil, fmt.Errorf("no recommendations for datastore inside datastorecluster: '%v'", dsc.dsc.Name())
+	}
+
+	rds := recs[0].Action[0].(*types.StoragePlacementAction).Destination
+
+	ds := d.NewDatastore(&rds)
+	dsInfo, err := ds.Info("name")
+	ds.ds.InventoryPath = dsInfo.Name
+
+	return ds, nil
 }
