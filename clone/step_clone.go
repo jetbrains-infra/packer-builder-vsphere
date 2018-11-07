@@ -27,10 +27,6 @@ func (c *CloneConfig) Prepare() []error {
 		errs = append(errs, fmt.Errorf("'linked_clone' and 'disk_size' cannot be used together"))
 	}
 
-	if c.Annotation == "" {
-		c.Annotation = "generate by jetbrains-infra/packer-builder-vsphere"
-	}
-
 	return errs
 }
 
