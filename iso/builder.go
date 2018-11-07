@@ -79,6 +79,7 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			&common.StepShutdown{
 				Config: &b.config.ShutdownConfig,
 			},
+			///
 			&StepRemoveFloppy{
 				Datastore: b.config.Datastore,
 				Host:      b.config.Host,
