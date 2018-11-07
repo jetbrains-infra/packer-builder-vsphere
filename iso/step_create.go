@@ -22,7 +22,7 @@ type CreateConfig struct {
 	NetworkCard   string `mapstructure:"network_card"`
 	USBController bool   `mapstructure:"usb_controller"`
 
-    Annotation    string `mapstructure:"annotation"`
+	Annotation string `mapstructure:"annotation"`
 }
 
 func (c *CreateConfig) Prepare() []error {
@@ -40,9 +40,9 @@ func (c *CreateConfig) Prepare() []error {
 		errs = append(errs, fmt.Errorf("'firmware' must be 'bios' or 'efi'"))
 	}
 
-    if c.Annotation == "" {
-        c.Annotation = "generate by jetbrains-infra/packer-builder-vsphere"
-    }
+	if c.Annotation == "" {
+		c.Annotation = "generate by jetbrains-infra/packer-builder-vsphere"
+	}
 
 	return errs
 }
@@ -73,7 +73,7 @@ func (s *StepCreateVM) Run(_ context.Context, state multistep.StateBag) multiste
 		USBController:       s.Config.USBController,
 		Version:             s.Config.Version,
 		Firmware:            s.Config.Firmware,
-        Annotation:          s.Config.Annotation,
+		Annotation:          s.Config.Annotation,
 	})
 	if err != nil {
 		state.Put("error", fmt.Errorf("error creating vm: %v", err))
