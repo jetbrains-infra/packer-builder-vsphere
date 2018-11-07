@@ -22,7 +22,7 @@ type CreateConfig struct {
 	NetworkCard   string `mapstructure:"network_card"`
 	USBController bool   `mapstructure:"usb_controller"`
 
-	Annotation string `mapstructure:"annotation"`
+	Annotation string `mapstructure:"notes"`
 }
 
 func (c *CreateConfig) Prepare() []error {
@@ -38,10 +38,6 @@ func (c *CreateConfig) Prepare() []error {
 
 	if c.Firmware != "" && c.Firmware != "bios" && c.Firmware != "efi" {
 		errs = append(errs, fmt.Errorf("'firmware' must be 'bios' or 'efi'"))
-	}
-
-	if c.Annotation == "" {
-		c.Annotation = "generate by jetbrains-infra/packer-builder-vsphere"
 	}
 
 	return errs

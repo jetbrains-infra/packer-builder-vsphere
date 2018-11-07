@@ -13,7 +13,7 @@ type CloneConfig struct {
 	Template    string `mapstructure:"template"`
 	DiskSize    int64  `mapstructure:"disk_size"`
 	LinkedClone bool   `mapstructure:"linked_clone"`
-	Annoation   string `mapstructure:"annotation"`
+	Notes       string `mapstructure:"notes"`
 }
 
 func (c *CloneConfig) Prepare() []error {
@@ -55,7 +55,7 @@ func (s *StepCloneVM) Run(ctx context.Context, state multistep.StateBag) multist
 		ResourcePool: s.Location.ResourcePool,
 		Datastore:    s.Location.Datastore,
 		LinkedClone:  s.Config.LinkedClone,
-		Annotation:   s.Config.Annotation,
+		Annotation:   s.Config.Notes,
 	})
 	if err != nil {
 		state.Put("error", err)
