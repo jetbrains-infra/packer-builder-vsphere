@@ -27,7 +27,6 @@ type Config struct {
 
 	CreateSnapshot    bool `mapstructure:"create_snapshot"`
 	ConvertToTemplate bool `mapstructure:"convert_to_template"`
-	RemoveIfExists    bool `mapstructure:"remove_if_exists"`
 
 	ctx interpolate.Context
 }

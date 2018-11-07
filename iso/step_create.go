@@ -42,23 +42,25 @@ func (c *CreateConfig) Prepare() []error {
 }
 
 type StepCreateVM struct {
-	Config         *CreateConfig
-	Location       *common.LocationConfig
-	RemoveIfExists bool
+	Config   *CreateConfig
+	Location *common.LocationConfig
+	Force    bool
 }
 
 func (s *StepCreateVM) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	d := state.Get("driver").(*driver.Driver)
 
-	if s.RemoveIfExists {
-		ui.Say("Destroying VM if exists...")
-		vm_to_destroy, err := d.FindVM(s.Location.VMName)
-		if err == nil {
-			err := vm_to_destroy.Destroy()
-			if err != nil {
-				state.Put("error", fmt.Errorf("error destroying vm: %v", err))
-			}
+	find_vm, err := d.FindVM(s.Location.VMName)
+
+	if s.Force == false && err == nil {
+		state.Put("error", fmt.Errorf("%s already exists, you can use -force flag to destroy it: %v", s.Location.VMName, err))
+		return multistep.ActionHalt
+	} else if s.Force == true && err == nil {
+		ui.Say(fmt.Sprintf("the vm/template %s already exists, but deleting it due to -force flag", s.Location.VMName))
+		err := find_vm.Destroy()
+		if err != nil {
+			state.Put("error", fmt.Errorf("error destroying %s: %v", s.Location.VMName, err))
 		}
 	}
 
