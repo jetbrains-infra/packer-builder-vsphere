@@ -42,13 +42,25 @@ func (c *CreateConfig) Prepare() []error {
 }
 
 type StepCreateVM struct {
-	Config   *CreateConfig
-	Location *common.LocationConfig
+	Config         *CreateConfig
+	Location       *common.LocationConfig
+	RemoveIfExists bool
 }
 
 func (s *StepCreateVM) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	d := state.Get("driver").(*driver.Driver)
+
+	if s.RemoveIfExists {
+		ui.Say("Destroying VM if exists...")
+		vm_to_destroy, err := d.FindVM(s.Location.VMName)
+		if err == nil {
+			err := vm_to_destroy.Destroy()
+			if err != nil {
+				state.Put("error", fmt.Errorf("error destroying vm: %v", err))
+			}
+		}
+	}
 
 	ui.Say("Creating VM...")
 	vm, err := d.CreateVM(&driver.CreateConfig{

@@ -59,6 +59,10 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 * `template`(string) - Name of source VM. Path is optional.
 * `linked_clone`(boolean) - Create VM as a linked clone from latest snapshot. Defaults to `false`.
 
+### VM Location (`vsphere-iso` only)
+
+* `remove_if_exists`(boolean) - remove the VM/template if it's already exists, default to `false`.
+
 ### Hardware
 
 * `CPUs`(number) - Number of CPU sockets.

@@ -37,8 +37,9 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			Config: &b.config.ConnectConfig,
 		},
 		&StepCreateVM{
-			Config:   &b.config.CreateConfig,
-			Location: &b.config.LocationConfig,
+			Config:         &b.config.CreateConfig,
+			Location:       &b.config.LocationConfig,
+			RemoveIfExists: b.config.RemoveIfExists,
 		},
 		&common.StepConfigureHardware{
 			Config: &b.config.HardwareConfig,
