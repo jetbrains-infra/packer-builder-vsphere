@@ -13,6 +13,7 @@ type CloneConfig struct {
 	Template    string `mapstructure:"template"`
 	DiskSize    int64  `mapstructure:"disk_size"`
 	LinkedClone bool   `mapstructure:"linked_clone"`
+	Annoation   string `mapstructure:"annotation"`
 }
 
 func (c *CloneConfig) Prepare() []error {
@@ -25,6 +26,10 @@ func (c *CloneConfig) Prepare() []error {
 	if c.LinkedClone == true && c.DiskSize != 0 {
 		errs = append(errs, fmt.Errorf("'linked_clone' and 'disk_size' cannot be used together"))
 	}
+
+    if c.Annotation == "" {
+        c.Annotation = "generate by jetbrains-infra/packer-builder-vsphere"
+    }
 
 	return errs
 }
@@ -54,6 +59,7 @@ func (s *StepCloneVM) Run(ctx context.Context, state multistep.StateBag) multist
 		ResourcePool: s.Location.ResourcePool,
 		Datastore:    s.Location.Datastore,
 		LinkedClone:  s.Config.LinkedClone,
+        Annotation:   s.Config.Annotation,
 	})
 	if err != nil {
 		state.Put("error", err)
