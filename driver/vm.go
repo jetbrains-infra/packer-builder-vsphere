@@ -221,7 +221,9 @@ func (template *VirtualMachine) Clone(ctx context.Context, config *CloneConfig) 
 	}
 
 	if config.Annotation != "" {
-		cloneSpec.Config.Annotation = config.Annotation
+		var configSpec types.VirtualMachineConfigSpec
+		configSpec.Annotation = config.Annotation
+		cloneSpec.Config = &configSpec
 	}
 
 	task, err := template.vm.Clone(template.driver.ctx, folder.folder, config.Name, cloneSpec)
