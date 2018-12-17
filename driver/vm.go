@@ -54,6 +54,7 @@ type CreateConfig struct {
 	GuestOS       string // example: otherGuest
 	Network       string // "" for default network
 	NetworkCard   string // example: vmxnet3
+	VideoRAM      int64
 	USBController bool
 	Version       uint   // example: 10
 	Firmware      string // efi or bios
@@ -125,12 +126,19 @@ func (d *Driver) CreateVM(config *CreateConfig) (*VirtualMachine, error) {
 		return nil, err
 	}
 
+	if config.VideoRAM != 0 {
+		d := &types.VirtualMachineVideoCard{
+			VideoRamSizeInKB: config.VideoRAM,
+		}
+		devices = append(devices, d)
+	}
+
 	if config.USBController {
 		t := true
-		usb := &types.VirtualUSBController{
+		d := &types.VirtualUSBController{
 			EhciEnabled: &t,
 		}
-		devices = append(devices, usb)
+		devices = append(devices, d)
 	}
 
 	createSpec.DeviceChange, err = devices.ConfigSpec(types.VirtualDeviceConfigSpecOperationAdd)
