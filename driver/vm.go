@@ -278,7 +278,6 @@ func (vm *VirtualMachine) Configure(config *HardwareConfig) error {
 	confSpec.CpuHotAddEnabled = &config.CpuHotAddEnabled
 	confSpec.MemoryHotAddEnabled = &config.MemoryHotAddEnabled
 
-
 	if config.VideoRAM != 0 {
 		devices, err := vm.vm.Device(vm.driver.ctx)
 		if err != nil {
