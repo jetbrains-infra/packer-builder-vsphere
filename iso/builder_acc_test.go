@@ -225,9 +225,6 @@ func checkHardware(t *testing.T) builderT.TestCheckFunc {
 		}
 
 		v := l.SelectByType((*types.VirtualMachineVideoCard)(nil))
-		if s != nil {
-			t.Fatalf("Cannot get video card")
-		}
 		if len(v) != 1 {
 			t.Errorf("VM should have one video card")
 		}
