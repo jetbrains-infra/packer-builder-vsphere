@@ -128,10 +128,10 @@ func (d *Driver) CreateVM(config *CreateConfig) (*VirtualMachine, error) {
 
 	if config.USBController {
 		t := true
-		d := &types.VirtualUSBController{
+		usb := &types.VirtualUSBController{
 			EhciEnabled: &t,
 		}
-		devices = append(devices, d)
+		devices = append(devices, usb)
 	}
 
 	createSpec.DeviceChange, err = devices.ConfigSpec(types.VirtualDeviceConfigSpecOperationAdd)
