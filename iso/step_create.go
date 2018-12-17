@@ -18,11 +18,9 @@ type CreateConfig struct {
 	DiskSize            int64  `mapstructure:"disk_size"`
 	DiskThinProvisioned bool   `mapstructure:"disk_thin_provisioned"`
 
-	Network     string `mapstructure:"network"`
-	NetworkCard string `mapstructure:"network_card"`
-
-	VideoRAM      int64 `mapstructure:"video_ram"`
-	USBController bool  `mapstructure:"usb_controller"`
+	Network       string `mapstructure:"network"`
+	NetworkCard   string `mapstructure:"network_card"`
+	USBController bool   `mapstructure:"usb_controller"`
 
 	Notes string `mapstructure:"notes"`
 }
@@ -82,7 +80,6 @@ func (s *StepCreateVM) Run(_ context.Context, state multistep.StateBag) multiste
 		GuestOS:             s.Config.GuestOSType,
 		Network:             s.Config.Network,
 		NetworkCard:         s.Config.NetworkCard,
-		VideoRAM:            s.Config.VideoRAM,
 		USBController:       s.Config.USBController,
 		Version:             s.Config.Version,
 		Firmware:            s.Config.Firmware,
