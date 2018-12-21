@@ -1,0 +1,55 @@
+{
+  "variables": {
+    "iso_datastore": "datastore1",
+    "iso_path": "ISOS/CentOS-7-x86_64-Minimal-1810.iso",
+    "vcenter_cluster": "prod",
+    "vcenter_datacenter": "contoso_1",
+    "vcenter_datastore": "ds_007",
+    "vcenter_folder": "DevOps",
+    "vcenter_password": "<PASSWORD>",
+    "vcenter_resource_pool": "Ops",
+    "vcenter_server": "vsphere.contoso.com",
+    "vcenter_username": "<USER>",
+    "vm_disk": "8192",
+    "vm_memory": "4096",
+    "vm_name": "example-centos7",
+    "vm_network": "Infrastructure",
+    "vm_ssh_password": "test",
+    "vm_ssh_username": "root"
+  },
+  "builders": [
+    {
+      "type": "vsphere-iso",
+
+      "boot_command": [
+        "<tab>inst.text inst.ks=hd:fd0:/ks.cfg<enter><wait>"
+      ],
+      "cluster": "{{ user `vcenter_cluster` }}",
+      "communicator": "ssh",
+      "convert_to_template": "true",
+      "CPUs": 1,
+      "datacenter": "{{ user `vcenter_datacenter` }}",
+      "datastore": "{{ user `vcenter_datastore` }}",
+      "disk_size": "{{ user `vm_disk` }}",
+      "disk_thin_provisioned": true,
+      "floppy_files": [
+        "{{template_dir}}/kickstart/centos/ks.cfg"
+      ],
+      "folder": "{{ user `vcenter_folder` }}",
+      "guest_os_type": "centos64Guest",
+      "insecure_connection": "true",
+      "iso_paths": [
+        "[{{ user `iso_datastore` }}] {{ user `iso_path` }}"
+      ],
+      "network": "{{ user `vm_network` }}",
+      "password": "{{ user `vcenter_password` }}",
+      "RAM": "{{ user `vm_memory` }}",
+      "resource_pool": "{{ user `vcenter_resource_pool` }}",
+      "ssh_password": "{{ user `vm_ssh_password` }}",
+      "ssh_username": "{{ user `vm_ssh_username` }}",
+      "username": "{{ user `vcenter_username` }}",
+      "vcenter_server": "{{ user `vcenter_server` }}",
+      "vm_name": "{{ user `vm_name` }}"
+    }
+  ]
+}

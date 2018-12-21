@@ -33,7 +33,7 @@ Artifacts can be also downloaded from [TeamCity builds](https://teamcity.jetbrai
 
 ## Examples
 
-See complete Ubuntu, Windows, and macOS templates in the [examples folder](https://github.com/jetbrains-infra/packer-builder-vsphere/tree/master/examples/).
+See complete CentOS, Ubuntu, Windows, and macOS templates in the [examples folder](https://github.com/jetbrains-infra/packer-builder-vsphere/tree/master/examples/).
 
 ## Parameter Reference
 
@@ -100,14 +100,11 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 ### Provision
 
 * `communicator` - `ssh` (default), `winrm`, or `none` (create/clone, customize hardware, but do not boot).
-
 * `ssh_username`(string) - Username in guest OS.
 * `ssh_password`(string) - Password to access guest OS. Only specify `ssh_password` or `ssh_private_key_file`, but not both.
 * `ssh_private_key_file`(string) - Path to the SSH private key file to access guest OS. Only specify `ssh_password` or `ssh_private_key_file`, but not both.
-
 * `winrm_username`(string) - Username in guest OS.
 * `winrm_password`(string) - Password to access guest OS.
-
 * `shutdown_command`(string) - Specify a VM guest shutdown command. VMware guest tools are used by default.
 * `shutdown_timeout`(string) - Amount of time to wait for graceful VM shutdown. Examples 45s and 10m. Defaults to 5m(5 minutes). See the Go Lang [ParseDuration](https://golang.org/pkg/time/#ParseDuration) documentation for full details.
 
@@ -149,36 +146,36 @@ Only use the `cluster` option. Optionally specify a `resource_pool`:
     Virtual machine -> Provisioning
     ```
     Individual privileges are listed in https://github.com/jetbrains-infra/packer-builder-vsphere/issues/97#issuecomment-436063235.
-* Resource pool, host, or cluster (this object): 
+* Resource pool, host, or cluster (this object):
     ```
     Resource -> Assign virtual machine to resource pool
     ```
-* Host in clusters without DRS (this object): 
+* Host in clusters without DRS (this object):
     ```
     Read-only
     ```
-* Datastore (this object): 
+* Datastore (this object):
     ```
     Datastore -> Allocate space
     Datastore -> Browse datastore
     Datastore -> Low level file operations
-    ```  
-* Network (this object): 
+    ```
+* Network (this object):
     ```
     Network -> Assign network
     ```
-* Distributed switch (this object): 
+* Distributed switch (this object):
     ```
     Read-only
     ```
 
 For floppy image upload:
 
-* Datacenter (this object): 
+* Datacenter (this object):
     ```
     Datastore -> Low level file operations
     ```
-* Host (this object): 
+* Host (this object):
     ```
     Host -> Configuration -> System Management
     ```
