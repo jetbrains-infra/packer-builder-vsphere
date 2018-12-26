@@ -20,17 +20,18 @@ func (s *StepRemoteUpload) Run(_ context.Context, state multistep.StateBag) mult
 
 	if path, ok := state.GetOk("iso_path"); ok {
 		filename := filepath.Base(path.(string))
-		remotepath := fmt.Sprintf("packer_cache/%s", filename)
-		remotedirectory := fmt.Sprintf("[%s] packer_cache/", s.Datastore)
-		final_remotepath := fmt.Sprintf("%s/%s", remotedirectory, remotepath)
-
-		ui.Say(fmt.Sprintf("Uploading %s to %s", filename, remotepath))
 
 		ds, err := d.FindDatastore(s.Datastore, s.Host)
 		if err != nil {
 			state.Put("error", fmt.Errorf("datastore doesn't exist: %v", err))
 			return multistep.ActionHalt
 		}
+
+		remotepath := fmt.Sprintf("packer_cache/%s", filename)
+		remotedirectory := fmt.Sprintf("[%s] packer_cache/", ds.Name())
+		final_remotepath := fmt.Sprintf("%s/%s", remotedirectory, remotepath)
+
+		ui.Say(fmt.Sprintf("Uploading %s to %s", filename, remotepath))
 
 		if exists := ds.FileExists(remotepath); exists == true {
 			ui.Say("File already upload")
