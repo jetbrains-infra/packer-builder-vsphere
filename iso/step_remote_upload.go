@@ -29,7 +29,7 @@ func (s *StepRemoteUpload) Run(_ context.Context, state multistep.StateBag) mult
 
 		remotepath := fmt.Sprintf("packer_cache/%s", filename)
 		remotedirectory := fmt.Sprintf("[%s] packer_cache/", ds.Name())
-		final_remotepath := fmt.Sprintf("%s/%s", remotedirectory, remotepath)
+		final_remotepath := fmt.Sprintf("%s/%s", remotedirectory, filename)
 
 		ui.Say(fmt.Sprintf("Uploading %s to %s", filename, remotepath))
 
