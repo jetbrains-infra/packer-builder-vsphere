@@ -1,0 +1,65 @@
+{
+  "builders": [
+    {
+      "type": "vsphere-iso",
+
+      "vcenter_server": "vcenter.admin",
+      "username": "administrator",
+      "password": "password",
+      "insecure_connection": "true",
+
+      "datacenter": "dc",
+      "datastore" : "ds",
+      "cluster": "cluster",
+      "host": "192.168.2.12",
+
+      "vm_version": 13,
+      "vm_name": "test-template-centos-7",
+      "guest_os_type": "rhel7_64Guest",
+      "notes": "generate by packer {{ isotime }}",
+
+      "communicator": "ssh",
+      "ssh_username": "root",
+      "ssh_password": "root",
+
+      "CPUs": 1,
+      "RAM": 2048,
+
+      "convert_to_template": true,
+
+      "disk_size": 10240,
+      "disk_thin_provisioned": true,
+      "disk_controller_type": "pvscsi",
+
+      "network_card": "vmxnet3",
+      "network": "network-3",
+
+      "iso_urls": [
+        "https://mirrors.ircam.fr/pub/CentOS/7.5.1804/isos/x86_64/CentOS-7-x86_64-Minimal-1804.iso"
+      ],
+      "iso_checksum_type" : "sha256",
+      "iso_checksum" : "714acc0aefb32b7d51b515e25546835e55a90da9fb00417fbee2d03a62801efd",
+
+      "floppy_files": [
+        "{{ template_dir }}/ks.cfg"
+      ],
+
+      "boot_wait": "10s",
+
+      "boot_command": [
+        "<tab>",
+        " text inst.ks=hd:fd0:/ks.cfg net.ifnames=0 biosdevname=0",
+        "<wait>",
+        "<enter>",
+        "<wait>",
+        "<enter>"
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": ["ip a"]
+    }
+  ]
+}
