@@ -37,19 +37,27 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 		&common.StepConnect{
 			Config: &b.config.ConnectConfig,
 		},
-		&packerCommon.StepDownload{
-			Checksum:     b.config.ISOChecksum,
-			ChecksumType: b.config.ISOChecksumType,
-			Description:  "ISO",
-			Extension:    b.config.TargetExtension,
-			ResultKey:    "iso_path",
-			TargetPath:   b.config.TargetPath,
-			Url:          b.config.ISOUrls,
-		},
-		&StepRemoteUpload{
-			Datastore: b.config.Datastore,
-			Host:      b.config.Host,
-		},
+	)
+
+	if b.config.ISOUrls != nil {
+		steps = append(steps,
+			&packerCommon.StepDownload{
+				Checksum:     b.config.ISOChecksum,
+				ChecksumType: b.config.ISOChecksumType,
+				Description:  "ISO",
+				Extension:    b.config.TargetExtension,
+				ResultKey:    "iso_path",
+				TargetPath:   b.config.TargetPath,
+				Url:          b.config.ISOUrls,
+			},
+			&StepRemoteUpload{
+				Datastore: b.config.Datastore,
+				Host:      b.config.Host,
+			},
+		)
+	}
+
+	steps = append(steps,
 		&StepCreateVM{
 			Config:   &b.config.CreateConfig,
 			Location: &b.config.LocationConfig,
