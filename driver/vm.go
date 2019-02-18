@@ -43,7 +43,7 @@ type HardwareConfig struct {
 
 type CreateConfig struct {
 	DiskThinProvisioned bool
-	DiskControllerType  string // example: "scsi", "pvscsi"
+	DiskControllerType  string // example: "scsi", "pvscsi", "lsilogic", "buslogic", "lsilogic-sas"
 	DiskSize            int64
 
 	Annotation    string
