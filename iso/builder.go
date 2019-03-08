@@ -90,9 +90,12 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 				HTTPPortMin: b.config.HTTPPortMin,
 				HTTPPortMax: b.config.HTTPPortMax,
 			},
+			&common.StepSetBootOrder{
+				BootOrder: b.config.RunConfig.BootOrder,
+				SetOrder: true,
+			},
 			&common.StepRun{
 				Config:   &b.config.RunConfig,
-				SetOrder: true,
 			},
 			&StepBootCommand{
 				Config: &b.config.BootConfig,
@@ -112,6 +115,10 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			&StepRemoveFloppy{
 				Datastore: b.config.Datastore,
 				Host:      b.config.Host,
+			},
+			&common.StepClearBootOrder{
+				BootOrder: b.config.RunConfig.BootOrder,
+				SetOrder: true,
 			},
 		)
 	}

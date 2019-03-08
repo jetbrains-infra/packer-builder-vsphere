@@ -51,9 +51,12 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 
 	if b.config.Comm.Type != "none" {
 		steps = append(steps,
+			&common.StepSetBootOrder{
+				BootOrder: b.config.RunConfig.BootOrder,
+				SetOrder: false,
+			},
 			&common.StepRun{
 				Config:   &b.config.RunConfig,
-				SetOrder: false,
 			},
 			&common.StepWaitForIp{},
 			&communicator.StepConnect{
@@ -64,6 +67,10 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 			&packerCommon.StepProvision{},
 			&common.StepShutdown{
 				Config: &b.config.ShutdownConfig,
+			},
+			&common.StepClearBootOrder{
+				BootOrder: b.config.RunConfig.BootOrder,
+				SetOrder: false,
 			},
 		)
 	}
