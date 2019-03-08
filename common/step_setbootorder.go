@@ -24,13 +24,11 @@ func (s *StepSetBootOrder) Run(_ context.Context, state multistep.StateBag) mult
 			state.Put("error", err)
 			return multistep.ActionHalt
 		}
-	} else {
-		if s.SetOrder {
-			ui.Say("Set boot order temporary...")
-			if err := vm.SetBootOrder([]string{"disk", "cdrom"}); err != nil {
-				state.Put("error", err)
-				return multistep.ActionHalt
-			}
+	} else if s.SetOrder {
+		ui.Say("Set boot order temporary...")
+		if err := vm.SetBootOrder([]string{"disk", "cdrom"}); err != nil {
+			state.Put("error", err)
+			return multistep.ActionHalt
 		}
 	}
 
