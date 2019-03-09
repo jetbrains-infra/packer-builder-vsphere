@@ -10,7 +10,7 @@ import (
 
 type StepSetBootOrder struct {
 	BootOrder string
-	SetOrder bool
+	SetOrder  bool
 }
 
 func (s *StepSetBootOrder) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
@@ -31,7 +31,6 @@ func (s *StepSetBootOrder) Run(_ context.Context, state multistep.StateBag) mult
 			return multistep.ActionHalt
 		}
 	}
-
 
 	return multistep.ActionContinue
 }

@@ -9,7 +9,7 @@ import (
 
 type StepClearBootOrder struct {
 	BootOrder string
-	SetOrder bool
+	SetOrder  bool
 }
 
 func (s *StepClearBootOrder) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {

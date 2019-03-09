@@ -12,7 +12,7 @@ type RunConfig struct {
 }
 
 type StepRun struct {
-	Config   *RunConfig
+	Config *RunConfig
 }
 
 func (s *StepRun) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
