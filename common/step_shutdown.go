@@ -12,8 +12,9 @@ import (
 )
 
 type ShutdownConfig struct {
-	Command    string `mapstructure:"shutdown_command"`
-	RawTimeout string `mapstructure:"shutdown_timeout"`
+	Command             string `mapstructure:"shutdown_command"`
+	RawTimeout          string `mapstructure:"shutdown_timeout"`
+	DisableStopInstance bool   `mapstructure:"disable_stop_instance"`
 
 	Timeout time.Duration
 }
@@ -44,7 +45,9 @@ func (s *StepShutdown) Run(ctx context.Context, state multistep.StateBag) multis
 	comm := state.Get("communicator").(packer.Communicator)
 	vm := state.Get("vm").(*driver.VirtualMachine)
 
-	if s.Config.Command != "" {
+	if s.Config.DisableStopInstance {
+		ui.Say("Automatic instance stop disabled. Please stop instance manually.")
+	} else if s.Config.Command != "" {
 		ui.Say("Executing shutdown command...")
 		log.Printf("Shutdown command: %s", s.Config.Command)
 

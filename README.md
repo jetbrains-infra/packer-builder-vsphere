@@ -116,6 +116,9 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 * `winrm_password`(string) - Password to access guest OS.
 * `shutdown_command`(string) - Specify a VM guest shutdown command. VMware guest tools are used by default.
 * `shutdown_timeout`(string) - Amount of time to wait for graceful VM shutdown. Examples 45s and 10m. Defaults to 5m(5 minutes). See the Go Lang [ParseDuration](https://golang.org/pkg/time/#ParseDuration) documentation for full details.
+* `disable_stop_instance`(boolean) - Packer normally stops the build instance after all provisioners have run. For Windows instances, it is sometimes desirable to run Sysprep which will stop the instance for you. If this is set to true, Packer will not stop the instance but will assume that you will send the stop signal yourself through your final provisioner. You can do this with a windows-shell provisioner.
+
+Note that Packer will still wait for the instance to be stopped, and failing to send the stop signal yourself, when you have set this flag to true, will cause a timeout.
 
 ### Postprocessing
 
