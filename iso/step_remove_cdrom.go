@@ -2,12 +2,18 @@ package iso
 
 import (
 	"context"
+
 	"github.com/hashicorp/packer/helper/multistep"
 	"github.com/hashicorp/packer/packer"
 	"github.com/jetbrains-infra/packer-builder-vsphere/driver"
 )
 
-type StepRemoveCDRom struct{}
+type RemoveCDRomConfig struct {
+	RemoveCdrom bool `mapstructure:"remove_cdrom"`
+}
+type StepRemoveCDRom struct {
+	Config *RemoveCDRomConfig
+}
 
 func (s *StepRemoveCDRom) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
@@ -20,6 +26,14 @@ func (s *StepRemoveCDRom) Run(_ context.Context, state multistep.StateBag) multi
 		return multistep.ActionHalt
 	}
 
+	if s.Config.RemoveCdrom == true {
+		ui.Say("Deleting CD-ROM drives...")
+		err := vm.RemoveCdroms()
+		if err != nil {
+			state.Put("error", err)
+			return multistep.ActionHalt
+		}
+	}
 	return multistep.ActionContinue
 }
 

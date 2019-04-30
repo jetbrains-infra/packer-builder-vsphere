@@ -117,7 +117,9 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	}
 
 	steps = append(steps,
-		&StepRemoveCDRom{},
+		&StepRemoveCDRom{
+			Config: &b.config.RemoveCDRomConfig,
+		},
 		&common.StepCreateSnapshot{
 			CreateSnapshot: b.config.CreateSnapshot,
 		},

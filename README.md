@@ -87,6 +87,7 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 * `network_card`(string) - Set VM network card type. Example `vmxnet3`.
 * `usb_controller`(boolean) - Create USB controller for virtual machine. Defaults to `false`.
 * `cdrom_type`(string) - Which controller to use. Example `sata`. Defaults to `ide`.
+* `remove_cdrom` (boolean) - Remove CD-ROM devices from template. Defaults to `false`.
 * `firmware`(string) - Set the Firmware at machine creation. Example `efi`. Defaults to `bios`.
 
 
