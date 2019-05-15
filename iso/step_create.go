@@ -17,6 +17,7 @@ type CreateConfig struct {
 	DiskControllerType  string `mapstructure:"disk_controller_type"`
 	DiskSize            int64  `mapstructure:"disk_size"`
 	DiskThinProvisioned bool   `mapstructure:"disk_thin_provisioned"`
+	DiskEagerlyScrub    bool   `mapstructure:"disk_eagerly_scrub"`
 
 	Network       string `mapstructure:"network"`
 	NetworkCard   string `mapstructure:"network_card"`
@@ -69,6 +70,7 @@ func (s *StepCreateVM) Run(_ context.Context, state multistep.StateBag) multiste
 	ui.Say("Creating VM...")
 	vm, err = d.CreateVM(&driver.CreateConfig{
 		DiskThinProvisioned: s.Config.DiskThinProvisioned,
+		DiskEagerlyScrub:    s.Config.DiskEagerlyScrub,
 		DiskControllerType:  s.Config.DiskControllerType,
 		DiskSize:            s.Config.DiskSize,
 		Name:                s.Location.VMName,
