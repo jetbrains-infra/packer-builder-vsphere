@@ -14,7 +14,7 @@ type StepRemoteUpload struct {
 	Host      string
 }
 
-func (s *StepRemoteUpload) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
+func (s *StepRemoteUpload) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	d := state.Get("driver").(*driver.Driver)
 

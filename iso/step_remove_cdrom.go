@@ -9,7 +9,7 @@ import (
 
 type StepRemoveCDRom struct{}
 
-func (s *StepRemoveCDRom) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
+func (s *StepRemoveCDRom) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	vm := state.Get("vm").(*driver.VirtualMachine)
 

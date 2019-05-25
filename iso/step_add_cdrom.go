@@ -27,7 +27,7 @@ func (c *CDRomConfig) Prepare() []error {
 	return errs
 }
 
-func (s *StepAddCDRom) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
+func (s *StepAddCDRom) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	vm := state.Get("vm").(*driver.VirtualMachine)
 

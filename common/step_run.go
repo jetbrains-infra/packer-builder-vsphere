@@ -17,7 +17,7 @@ type StepRun struct {
 	SetOrder bool
 }
 
-func (s *StepRun) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
+func (s *StepRun) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	vm := state.Get("vm").(*driver.VirtualMachine)
 

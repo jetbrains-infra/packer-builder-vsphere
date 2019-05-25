@@ -27,7 +27,7 @@ type BootConfig struct {
 
 type bootCommandTemplateData struct {
 	HTTPIP   string
-	HTTPPort uint
+	HTTPPort int
 	Name     string
 }
 
@@ -90,7 +90,7 @@ func init() {
 	}
 }
 
-func (s *StepBootCommand) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
+func (s *StepBootCommand) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	vm := state.Get("vm").(*driver.VirtualMachine)
 
@@ -112,7 +112,7 @@ WAITLOOP:
 		}
 	}
 
-	port := state.Get("http_port").(uint)
+	port := state.Get("http_port").(int)
 	if port > 0 {
 		ip, err := getHostIP(s.Config.HTTPIP)
 		if err != nil {

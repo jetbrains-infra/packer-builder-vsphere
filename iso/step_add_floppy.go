@@ -20,7 +20,7 @@ type StepAddFloppy struct {
 	Host      string
 }
 
-func (s *StepAddFloppy) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
+func (s *StepAddFloppy) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	vm := state.Get("vm").(*driver.VirtualMachine)
 	d := state.Get("driver").(*driver.Driver)

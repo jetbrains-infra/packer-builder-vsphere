@@ -49,7 +49,7 @@ type StepCreateVM struct {
 	Force    bool
 }
 
-func (s *StepCreateVM) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
+func (s *StepCreateVM) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	d := state.Get("driver").(*driver.Driver)
 

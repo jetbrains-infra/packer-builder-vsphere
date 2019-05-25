@@ -38,7 +38,7 @@ type StepConfigureHardware struct {
 	Config *HardwareConfig
 }
 
-func (s *StepConfigureHardware) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
+func (s *StepConfigureHardware) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	vm := state.Get("vm").(*driver.VirtualMachine)
 

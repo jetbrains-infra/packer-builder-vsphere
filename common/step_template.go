@@ -11,7 +11,7 @@ type StepConvertToTemplate struct {
 	ConvertToTemplate bool
 }
 
-func (s *StepConvertToTemplate) Run(_ context.Context, state multistep.StateBag) multistep.StepAction {
+func (s *StepConvertToTemplate) Run(ctx context.Context, state multistep.StateBag) multistep.StepAction {
 	ui := state.Get("ui").(packer.Ui)
 	vm := state.Get("vm").(*driver.VirtualMachine)
 
