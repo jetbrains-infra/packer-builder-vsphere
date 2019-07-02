@@ -10,11 +10,12 @@ import (
 )
 
 type CloneConfig struct {
-	Template    string `mapstructure:"template"`
-	DiskSize    int64  `mapstructure:"disk_size"`
-	LinkedClone bool   `mapstructure:"linked_clone"`
-	Network     string `mapstructure:"network"`
-	Notes       string `mapstructure:"notes"`
+	Template       string            `mapstructure:"template"`
+	DiskSize       int64             `mapstructure:"disk_size"`
+	LinkedClone    bool              `mapstructure:"linked_clone"`
+	Network        string            `mapstructure:"network"`
+	Notes          string            `mapstructure:"notes"`
+	VAppProperties map[string]string `mapstructure:"vapp_properties"`
 }
 
 func (c *CloneConfig) Prepare() []error {
@@ -62,15 +63,16 @@ func (s *StepCloneVM) Run(ctx context.Context, state multistep.StateBag) multist
 	}
 
 	vm, err := template.Clone(ctx, &driver.CloneConfig{
-		Name:         s.Location.VMName,
-		Folder:       s.Location.Folder,
-		Cluster:      s.Location.Cluster,
-		Host:         s.Location.Host,
-		ResourcePool: s.Location.ResourcePool,
-		Datastore:    s.Location.Datastore,
-		LinkedClone:  s.Config.LinkedClone,
-		Network:      s.Config.Network,
-		Annotation:   s.Config.Notes,
+		Name:           s.Location.VMName,
+		Folder:         s.Location.Folder,
+		Cluster:        s.Location.Cluster,
+		Host:           s.Location.Host,
+		ResourcePool:   s.Location.ResourcePool,
+		Datastore:      s.Location.Datastore,
+		LinkedClone:    s.Config.LinkedClone,
+		Network:        s.Config.Network,
+		Annotation:     s.Config.Notes,
+		VAppProperties: s.Config.VAppProperties,
 	})
 	if err != nil {
 		state.Put("error", err)
