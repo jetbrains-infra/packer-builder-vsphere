@@ -85,6 +85,8 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 * `disk_controller_type`(string) - Set VM disk controller type. Example `pvscsi`.
 * `disk_thin_provisioned`(boolean) - Enable VMDK thin provisioning for VM. Defaults to `false`.
 * `network_card`(string) - Set VM network card type. Example `vmxnet3`.
+* `mac_address_type`(string) - Should the MAC be generated? Examples `generated` or `manual`. Defaults to `generated`.
+* `mac_address`(string) - The MAC to assign the VM if `manual` is set on `mac_address_type`. 
 * `usb_controller`(boolean) - Create USB controller for virtual machine. Defaults to `false`.
 * `cdrom_type`(string) - Which controller to use. Example `sata`. Defaults to `ide`.
 * `firmware`(string) - Set the Firmware at machine creation. Example `efi`. Defaults to `bios`.
