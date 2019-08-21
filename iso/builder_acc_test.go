@@ -338,6 +338,8 @@ func TestISOBuilderAcc_networkCard(t *testing.T) {
 func networkCardConfig() string {
 	config := defaultConfig()
 	config["network_card"] = "vmxnet3"
+	config["mac_address_type"] = "Generated"
+	config["mac_address"] = ""
 	return commonT.RenderConfig(config)
 }
 
@@ -425,6 +427,8 @@ func fullConfig() map[string]interface{} {
 		"disk_size":             1024,
 		"disk_thin_provisioned": true,
 		"network_card":          "vmxnet3",
+		"mac_address_type":          "generated",
+		"mac_address":          "",
 		"guest_os_type":         "other3xLinux64Guest",
 
 		"iso_paths": []string{

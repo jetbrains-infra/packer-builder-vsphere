@@ -58,6 +58,8 @@ type CreateConfig struct {
 	GuestOS       string // example: otherGuest
 	Network       string // "" for default network
 	NetworkCard   string // example: vmxnet3
+	MacAddressType  string
+	MacAddress    string
 	USBController bool
 	Version       uint   // example: 10
 	Firmware      string // efi or bios
@@ -542,6 +544,10 @@ func addNetwork(d *Driver, devices object.VirtualDeviceList, config *CreateConfi
 	if err != nil {
 		return nil, err
 	}
+
+	card := device.(types.BaseVirtualEthernetCard).GetVirtualEthernetCard()
+	card.MacAddress = config.MacAddress
+	card.AddressType =  config.MacAddressType
 
 	return append(devices, device), nil
 }

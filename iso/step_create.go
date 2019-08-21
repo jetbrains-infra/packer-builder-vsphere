@@ -20,6 +20,8 @@ type CreateConfig struct {
 
 	Network       string `mapstructure:"network"`
 	NetworkCard   string `mapstructure:"network_card"`
+	MacAddressType string `mapstructure:"mac_address_type"`
+	MacAddress string `mapstructure:"mac_address"`
 	USBController bool   `mapstructure:"usb_controller"`
 
 	Notes string `mapstructure:"notes"`
@@ -80,6 +82,8 @@ func (s *StepCreateVM) Run(_ context.Context, state multistep.StateBag) multiste
 		GuestOS:             s.Config.GuestOSType,
 		Network:             s.Config.Network,
 		NetworkCard:         s.Config.NetworkCard,
+		MacAddressType:      s.Config.MacAddressType,
+		MacAddress:          s.Config.MacAddress,
 		USBController:       s.Config.USBController,
 		Version:             s.Config.Version,
 		Firmware:            s.Config.Firmware,
