@@ -16,7 +16,8 @@ type CloneConfig struct {
 	Network     string `mapstructure:"network"`
 	Notes       string `mapstructure:"notes"`
 
-	Networks []string `mapstructure:"networks"`
+	Networks    []string `mapstructure:"networks"`
+	NetworkCard string   `mapstructure:"network_card"`
 }
 
 func (c *CloneConfig) Prepare() []error {
