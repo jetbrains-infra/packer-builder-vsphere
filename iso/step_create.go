@@ -23,11 +23,16 @@ type CreateConfig struct {
 	USBController bool   `mapstructure:"usb_controller"`
 
 	Notes string `mapstructure:"notes"`
+
+	GlobalDiskType string              `mapstructure:"disk_type"`
+	Networks       []string            `mapstructure:"networks"`
+	Storage        []driver.DiskConfig `mapstructure:"storage"`
 }
 
 func (c *CreateConfig) Prepare() []error {
 	var errs []error
 
+  // to do: accept parameter 'DiskSize' or 'Storage', but not both at the same time
 	if c.DiskSize == 0 {
 		errs = append(errs, fmt.Errorf("'disk_size' is required"))
 	}
@@ -84,6 +89,9 @@ func (s *StepCreateVM) Run(_ context.Context, state multistep.StateBag) multiste
 		Version:             s.Config.Version,
 		Firmware:            s.Config.Firmware,
 		Annotation:          s.Config.Notes,
+		GlobalDiskType:      s.Config.GlobalDiskType,
+		Networks:            s.Config.Networks,
+		Storage:             s.Config.Storage,
 	})
 	if err != nil {
 		state.Put("error", fmt.Errorf("error creating vm: %v", err))

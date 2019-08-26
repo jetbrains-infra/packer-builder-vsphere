@@ -15,6 +15,8 @@ type CloneConfig struct {
 	LinkedClone bool   `mapstructure:"linked_clone"`
 	Network     string `mapstructure:"network"`
 	Notes       string `mapstructure:"notes"`
+
+	Networks []string `mapstructure:"networks"`
 }
 
 func (c *CloneConfig) Prepare() []error {
@@ -71,6 +73,8 @@ func (s *StepCloneVM) Run(ctx context.Context, state multistep.StateBag) multist
 		LinkedClone:  s.Config.LinkedClone,
 		Network:      s.Config.Network,
 		Annotation:   s.Config.Notes,
+		Networks:     s.Config.Networks,
+		NetworkCard:  s.Config.NetworkCard,
 	})
 	if err != nil {
 		state.Put("error", err)
