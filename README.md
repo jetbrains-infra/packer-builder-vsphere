@@ -72,8 +72,8 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 * `RAM_reserve_all`(boolean) - Reserve all available RAM. Defaults to `false`. Cannot be used together with `RAM_reservation`.
 * `RAM_hot_plug`(boolean) - Enable RAM hot plug setting for virtual machine. Defaults to `false`.
 * `video_ram`(number) - Amount of video memory in MB.
-* `disk_size`(number) - The size of the disk in MB.
-* `network`(string) - Set network VM will be connected to.
+* `disk_size`(number) - The size of the disk in MB. (deprecated for `vsphere-iso`)
+* `network`(string) - Set network VM will be connected to. (deprecated for `vsphere-iso`)
 * `NestedHV`(boolean) - Enable nested hardware virtualization for VM. Defaults to `false`.
 * `configuration_parameters`(map) - Custom parameters.
 * `boot_order`(string) - Priority of boot devices. Defaults to `disk,cdrom`
@@ -83,12 +83,31 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 * `vm_version`(number) - Set VM hardware version. Defaults to the most current VM hardware version supported by vCenter. See [VMWare article 1003746](https://kb.vmware.com/s/article/1003746) for the full list of supported VM hardware versions.
 * `guest_os_type`(string) - Set VM OS type. Defaults to `otherGuest`. See [here](https://pubs.vmware.com/vsphere-6-5/index.jsp?topic=%2Fcom.vmware.wssdk.apiref.doc%2Fvim.vm.GuestOsDescriptor.GuestOsIdentifier.html) for a full list of possible values.
 * `disk_controller_type`(string) - Set VM disk controller type. Example `pvscsi`.
-* `disk_thin_provisioned`(boolean) - Enable VMDK thin provisioning for VM. Defaults to `false`.
+* `disk_thin_provisioned`(boolean) - Enable VMDK thin provisioning for VM. Defaults to `false`. (deprecated)
 * `network_card`(string) - Set VM network card type. Example `vmxnet3`.
 * `usb_controller`(boolean) - Create USB controller for virtual machine. Defaults to `false`.
 * `cdrom_type`(string) - Which controller to use. Example `sata`. Defaults to `ide`.
 * `firmware`(string) - Set the Firmware at machine creation. Example `efi`. Defaults to `bios`.
+* `networks`(array of strings) - List of networks the VM will be connected to. Supersedes `network`.
+* `disk_type`(string) - Type of disk to create. One of `thick_eager`, `thick_lazy` or `thin`. Defaults to `thick_lazy`. Can be overridden per disk in the `storage` array.
+* `storage`(array of disk definitions) - List of disks definitions. Supersedes `disk_size`.
+    * `disk_name`(string) - For human readability only (optional).
+    * `disk_size`(number) - The size of the disk in MB.
+    * `disk_type`(string) - The type of disk (optional, see `disk_type`).
 
+```
+"storage": [
+  {
+    "disk_name": "sda",
+    "disk_size": 8192,
+    "disk_type": "thin"
+  },
+  {
+    "disk_name": "sdb",
+    "disk_size": 16384,
+  }
+]
+```
 
 ### Boot (`vsphere-iso` only)
 
