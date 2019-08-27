@@ -27,8 +27,6 @@ type CloneConfig struct {
 	LinkedClone  bool
 	Network      string
 	Annotation   string
-	Networks     []string
-	NetworkCard  string
 }
 
 type HardwareConfig struct {
@@ -135,11 +133,20 @@ func (d *Driver) CreateVM(config *CreateConfig) (*VirtualMachine, error) {
 
 	devices := object.VirtualDeviceList{}
 
-	devices, err = addDisk(d, devices, config)
+	if len(config.Storage) > 0 {
+		devices, err = addDisks(d, devices, config)
+	} else {
+		devices, err = addDisk(d, devices, config)
+	}
 	if err != nil {
 		return nil, err
 	}
-	devices, err = addNetwork(d, devices, config)
+
+	if len(config.Networks) > 0 {
+		devices, err = addNetworks(d, devices, config)
+	} else {
+		devices, err = addNetwork(d, devices, config)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -534,10 +541,6 @@ func addDisks(_ *Driver, devices object.VirtualDeviceList, config *CreateConfig)
 	}
 
 	for _, dc := range config.Storage {
-		if dc.DiskName != "" {
-			dc.DiskName += ".vmdk"
-		}
-
 		if dc.DiskType == "" && config.GlobalDiskType != "" {
 			dc.DiskType = config.GlobalDiskType
 		}
@@ -613,6 +616,28 @@ func addNetwork(d *Driver, devices object.VirtualDeviceList, config *CreateConfi
 	}
 
 	return append(devices, device), nil
+}
+
+func addNetworks(d *Driver, devices object.VirtualDeviceList, config *CreateConfig) (object.VirtualDeviceList, error) {
+	for _, networkName := range config.Networks {
+		network, err := d.finder.Network(d.ctx, networkName)
+		if err != nil {
+			return nil, err
+		}
+
+		backing, err := network.EthernetCardBackingInfo(d.ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		device, err := object.EthernetCardTypes().CreateEthernetCard(config.NetworkCard, backing)
+		if err != nil {
+			return nil, err
+		}
+
+		devices = append(devices, device)
+	}
+	return devices, nil
 }
 
 func (vm *VirtualMachine) AddCdrom(controllerType string, isoPath string) error {

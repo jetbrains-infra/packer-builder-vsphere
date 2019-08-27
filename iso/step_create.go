@@ -32,9 +32,11 @@ type CreateConfig struct {
 func (c *CreateConfig) Prepare() []error {
 	var errs []error
 
-  // to do: accept parameter 'DiskSize' or 'Storage', but not both at the same time
-	if c.DiskSize == 0 {
-		errs = append(errs, fmt.Errorf("'disk_size' is required"))
+	// options 'DiskSize' and 'Storage' are but mutually exclusive, but one is required
+	if c.DiskSize != 0 && len(c.Storage) != 0 {
+		errs = append(errs, fmt.Errorf("'disk_size' and 'storage' are mutually exclusive"))
+	} else if c.DiskSize == 0 && len(c.Storage) == 0 {
+		errs = append(errs, fmt.Errorf("either 'disk_size' or 'storage' is required"))
 	}
 
 	if c.GuestOSType == "" {
