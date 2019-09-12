@@ -12,27 +12,18 @@ import (
 )
 
 type ShutdownConfig struct {
-	Command    string `mapstructure:"shutdown_command"`
-	RawTimeout string `mapstructure:"shutdown_timeout"`
-
-	Timeout time.Duration
+	Command string        `mapstructure:"shutdown_command"`
+	Timeout time.Duration `mapstructure:"shutdown_timeout"`
 }
 
 func (c *ShutdownConfig) Prepare() []error {
 	var errs []error
 
-	if c.RawTimeout != "" {
-		timeout, err := time.ParseDuration(c.RawTimeout)
-		if err != nil {
-			errs = append(errs, fmt.Errorf("Failed parsing shutdown_timeout: %s", err))
-			return errs
-		}
-		c.Timeout = timeout
-	} else {
+	if c.Timeout == 0 {
 		c.Timeout = 5 * time.Minute
 	}
 
-	return nil
+	return errs
 }
 
 type StepShutdown struct {
@@ -54,7 +45,7 @@ func (s *StepShutdown) Run(ctx context.Context, state multistep.StateBag) multis
 			Stdout:  &stdout,
 			Stderr:  &stderr,
 		}
-		err := comm.Start(cmd)
+		err := comm.Start(ctx, cmd)
 		if err != nil {
 			state.Put("error", fmt.Errorf("Failed to send shutdown command: %s", err))
 			return multistep.ActionHalt
