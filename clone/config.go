@@ -19,6 +19,7 @@ type Config struct {
 	common.ConfigParamsConfig `mapstructure:",squash"`
 
 	common.RunConfig      `mapstructure:",squash"`
+	common.BootConfig     `mapstructure:",squash"`
 	common.WaitIpConfig   `mapstructure:",squash"`
 	Comm                  communicator.Config `mapstructure:",squash"`
 	common.ShutdownConfig `mapstructure:",squash"`
@@ -34,6 +35,11 @@ func NewConfig(raws ...interface{}) (*Config, []string, error) {
 	err := config.Decode(c, &config.DecodeOpts{
 		Interpolate:        true,
 		InterpolateContext: &c.ctx,
+		InterpolateFilter: &interpolate.RenderFilter{
+			Exclude: []string{
+				"boot_command",
+			},
+		},
 	}, raws...)
 	if err != nil {
 		return nil, nil, err
