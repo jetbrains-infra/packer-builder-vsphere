@@ -32,10 +32,12 @@ func (s *StepAddCDRom) Run(_ context.Context, state multistep.StateBag) multiste
 	vm := state.Get("vm").(*driver.VirtualMachine)
 
 	if s.Config.CdromType == "sata" {
-		ui.Say("Adding SATA controller...")
-		if err := vm.AddSATAController(); err != nil {
-			state.Put("error", fmt.Errorf("error adding SATA controller: %v", err))
-			return multistep.ActionHalt
+		if _, err := vm.FindSATAController(); err == driver.ErrNoSataController {
+			ui.Say("Adding SATA controller...")
+			if err := vm.AddSATAController(); err != nil {
+				state.Put("error", fmt.Errorf("error adding SATA controller: %v", err))
+				return multistep.ActionHalt
+			}
 		}
 	}
 
@@ -43,7 +45,7 @@ func (s *StepAddCDRom) Run(_ context.Context, state multistep.StateBag) multiste
 	if len(s.Config.ISOPaths) > 0 {
 		for _, path := range s.Config.ISOPaths {
 			if err := vm.AddCdrom(s.Config.CdromType, path); err != nil {
-				state.Put("error", fmt.Errorf("error mounting an image: %v", err))
+				state.Put("error", fmt.Errorf("error mounting an image '%v': %v", path, err))
 				return multistep.ActionHalt
 			}
 		}
@@ -51,7 +53,7 @@ func (s *StepAddCDRom) Run(_ context.Context, state multistep.StateBag) multiste
 
 	if path, ok := state.GetOk("iso_remote_path"); ok {
 		if err := vm.AddCdrom(s.Config.CdromType, path.(string)); err != nil {
-			state.Put("error", fmt.Errorf("error mounting an image: %v", err))
+			state.Put("error", fmt.Errorf("error mounting an image '%v': %v", path, err))
 			return multistep.ActionHalt
 		}
 	}
