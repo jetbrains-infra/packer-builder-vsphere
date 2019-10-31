@@ -1,0 +1,49 @@
+{
+  "variables": {
+    "vcentre_user": "",
+    "vcentre_password": ""
+  },
+  "builders": [
+    {
+      "type": "vsphere-iso",
+      "vcenter_server":      "SET_THIS_VALUE",
+      "username":            "{{ user `vcentre_user`}}",
+      "password":            "{{ user `vcentre_password`}}",
+      "insecure_connection": true,
+      "vm_name": "Centos8-Template",
+      "notes": "Build via Packer",
+      "datacenter": "SET_THIS_VALUE",
+      "cluster": "SET_THIS_VALUE",
+      "resource_pool": "",
+      "datastore": "SET_THIS_VALUE",
+      "network": "SET_THIS_VALUE",
+      "folder": "Packer",
+      "guest_os_type": "centos7_64Guest",
+
+      "ssh_username": "root",
+      "ssh_password": "SET_THIS_VALUE",
+
+      "CPUs":             1,
+      "RAM":              1024,
+      "RAM_reserve_all": false,
+
+      "convert_to_template": true,
+
+      "disk_controller_type":  "pvscsi",
+      "disk_size":        20000,
+      "disk_thin_provisioned": true,
+
+      "network_card": "vmxnet3",
+
+      "iso_paths": [
+        "[SET_THIS_VALUE] ISOs/CentOS-8-x86_64-1905-dvd1.iso"
+      ],
+      "iso_checksum": "e15fb0e51726de0a4128448b9bd63e7b",
+      "iso_checksum_type": "md5",
+      "http_directory" :  "httpks",
+      "http_port_min": 8053,
+      "http_port_max": 8053,
+      "boot_command": "<esc><wait>linux inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/centos8.ks <enter> " 
+          }
+  ]
+}
