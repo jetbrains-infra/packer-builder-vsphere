@@ -18,6 +18,7 @@
 
       "disk_size":        32768,
       "disk_thin_provisioned": true,
+      "disk_eagerly_scrub": false,
 
       "network_card": "e1000e",
       "usb_controller": true,

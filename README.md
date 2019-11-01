@@ -84,6 +84,7 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 * `guest_os_type`(string) - Set VM OS type. Defaults to `otherGuest`. See [here](https://pubs.vmware.com/vsphere-6-5/index.jsp?topic=%2Fcom.vmware.wssdk.apiref.doc%2Fvim.vm.GuestOsDescriptor.GuestOsIdentifier.html) for a full list of possible values.
 * `disk_controller_type`(string) - Set VM disk controller type. Example `pvscsi`.
 * `disk_thin_provisioned`(boolean) - Enable VMDK thin provisioning for VM. Defaults to `false`.
+* `disk_eagerly_scrub`(boolean) - Enable VMDK eagerly scrub for VM. Defaults to `false`.
 * `network_card`(string) - Set VM network card type. Example `vmxnet3`.
 * `usb_controller`(boolean) - Create USB controller for virtual machine. Defaults to `false`.
 * `cdrom_type`(string) - Which controller to use. Example `sata`. Defaults to `ide`.

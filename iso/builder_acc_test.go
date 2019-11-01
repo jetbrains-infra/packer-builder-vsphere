@@ -424,6 +424,7 @@ func fullConfig() map[string]interface{} {
 		"disk_controller_type":  "pvscsi",
 		"disk_size":             1024,
 		"disk_thin_provisioned": true,
+		"disk_eagerly_scrub":    false,
 		"network_card":          "vmxnet3",
 		"guest_os_type":         "other3xLinux64Guest",
 
