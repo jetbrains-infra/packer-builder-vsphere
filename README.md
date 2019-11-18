@@ -82,7 +82,7 @@ See complete Ubuntu, Windows, and macOS templates in the [examples folder](https
 
 * `vm_version`(number) - Set VM hardware version. Defaults to the most current VM hardware version supported by vCenter. See [VMWare article 1003746](https://kb.vmware.com/s/article/1003746) for the full list of supported VM hardware versions.
 * `guest_os_type`(string) - Set VM OS type. Defaults to `otherGuest`. See [here](https://pubs.vmware.com/vsphere-6-5/index.jsp?topic=%2Fcom.vmware.wssdk.apiref.doc%2Fvim.vm.GuestOsDescriptor.GuestOsIdentifier.html) for a full list of possible values.
-* `disk_controller_type`(string) - Set VM disk controller type. Example `pvscsi`.
+* `disk_controller_type`(string) - Set VM disk controller type. Example `pvscsi`. See [here](https://github.com/vmware/govmomi/blob/4bb2ee648b2bb3e6f858fc48dac3848e7536dbbb/govc/USAGE.md#devicescsiadd) for a full list of possible values.
 * `disk_thin_provisioned`(boolean) - Enable VMDK thin provisioning for VM. Defaults to `false`.
 * `network_card`(string) - Set VM network card type. Example `vmxnet3`.
 * `usb_controller`(boolean) - Create USB controller for virtual machine. Defaults to `false`.
