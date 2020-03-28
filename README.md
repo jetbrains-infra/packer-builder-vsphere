@@ -1,7 +1,14 @@
-[![Team project](http://jb.gg/badges/team.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
+[![Team project](http://jb.gg/badges/obsolete.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
 [![GitHub latest release](https://img.shields.io/github/release/jetbrains-infra/packer-builder-vsphere.svg)](https://github.com/jetbrains-infra/packer-builder-vsphere/releases)
 [![GitHub downloads](https://img.shields.io/github/downloads/jetbrains-infra/packer-builder-vsphere/total.svg)](https://github.com/jetbrains-infra/packer-builder-vsphere/releases)
 [![TeamCity build status](https://img.shields.io/teamcity/http/teamcity.jetbrains.com/s/PackerVSphere_Build.svg)](https://teamcity.jetbrains.com/viewType.html?buildTypeId=PackerVSphere_Build&guest=1)
+
+# Deprecation notice
+This plugin was merged into [official Packer repository](https://github.com/hashicorp/packer) and released with Packer since version 1.5.2.
+ 
+Please use modern version of Packer and report problems, feature suggestions to main Packer repository.
+
+This repository left for history and archived. 
 
 
 # Packer Builder for VMware vSphere
